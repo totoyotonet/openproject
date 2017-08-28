@@ -65,7 +65,7 @@ See doc/COPYRIGHT.rdoc for more details.
   </div>
 <% end %>
 
-<%= javascript_tag do -%>
+<%= nonced_javascript_tag  do -%>
   jQuery(document).ready(function() {
     SubmitConfirm.init(jQuery('.confirm_required'), '<%= l('account.delete_confirmation') %>');
   });

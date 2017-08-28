@@ -29,7 +29,7 @@ See doc/COPYRIGHT.rdoc for more details.
 
 <%# Push timeline data to view as JSON via gon %>
 <% push_timeline_options timeline %>
-<%= include_gon %>
+<%= include_gon(nonce: content_security_policy_nonce(:script)) %>
 
 <div ng-controller="TimelinesController" ng-init="init(<%= timeline.id %>)">
   <timeline-container timeline-id="<%= timeline.id %>">
