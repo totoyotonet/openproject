@@ -27,25 +27,57 @@
 //++
 
 import {HalResource} from './hal-resource.service';
-import {opApiModule} from '../../../../angular-modules';
 
-interface CollectionResourceEmbedded {
-  elements: HalResource[];
+export interface HalChangesetEntry {
+  oldValue:any;
+  newValue:any;
+  changedAt:number;
 }
 
-export class CollectionResource extends HalResource {
-  public elements: HalResource[];
-  public count: number;
-  public total: number;
-  public pageSize: number;
-  public offset: number;
-}
+export class HalChangeset {
+  public entries:{[attribute:string]:HalChangesetEntry} = {};
 
-export interface CollectionResourceInterface extends CollectionResourceEmbedded, CollectionResource {
-}
+  constructor(private resource:HalResource) {
 
-function collectionResource() {
-  return CollectionResource;
-}
+  }
 
-opApiModule.factory('CollectionResource', collectionResource);
+  public getOldValue(key:string) {
+    if (this.isChanged(key)) {
+      return this.entries[key].oldValue;
+    }
+
+    return this.resource[key];
+  }
+
+  public getCurrentValue(key:string) {
+    if (this.isChanged(key)) {
+      return this.entries[key].newValue;
+    }
+
+    return this.resource[key];
+  }
+
+  public setValue(key:string, oldValue:any, newValue:any) {
+    this.entries[key] = {
+      oldValue: oldValue,
+      newValue: newValue,
+      changedAt: Date.now()
+    } as HalChangesetEntry;
+  }
+
+  public isChanged(key:string):boolean {
+    return this.entries.hasOwnProperty(key);
+  }
+
+  public reset(key:string):void {
+    delete this.entries[key];
+  }
+
+  public resetAll():void {
+    this.entries = {};
+  }
+
+  public get empty():boolean {
+    return _.size(this.entries) === 0;
+  }
+}

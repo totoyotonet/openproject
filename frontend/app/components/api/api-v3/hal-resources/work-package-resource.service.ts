@@ -31,12 +31,9 @@ import {opApiModule} from '../../../../angular-modules';
 import {WorkPackageCacheService} from '../../../work-packages/work-package-cache.service';
 import {SchemaCacheService} from './../../../schemas/schema-cache.service';
 import {ApiWorkPackagesService} from '../../api-work-packages/api-work-packages.service';
-import {CollectionResource, CollectionResourceInterface} from './collection-resource.service';
+import {CollectionResourceInterface} from './collection-resource.service';
 import {AttachmentCollectionResourceInterface} from './attachment-collection-resource.service';
 import {UploadFile} from '../../op-file-upload/op-file-upload.service';
-import IQService = angular.IQService;
-import IPromise = angular.IPromise;
-import ITimeoutService = angular.ITimeoutService;
 import {States} from '../../../states.service';
 import {SchemaResource} from './schema-resource.service';
 import {TypeResource} from './type-resource.service';
@@ -44,6 +41,13 @@ import {RelationResourceInterface} from './relation-resource.service';
 import {WorkPackageCreateService} from '../../../wp-create/wp-create.service';
 import {WorkPackageNotificationService} from '../../../wp-edit/wp-notification.service';
 import {debugLog} from '../../../../helpers/debug_output';
+import {input} from 'reactivestates';
+import {FormResourceInterface} from './form-resource.service';
+import {ErrorResource} from './error-resource.service';
+import {HalChangeset, HalChangesetEntry} from './hal-changeset';
+import IQService = angular.IQService;
+import IPromise = angular.IPromise;
+import ITimeoutService = angular.ITimeoutService;
 
 export interface WorkPackageResourceEmbedded {
   activities:CollectionResourceInterface;
@@ -75,19 +79,33 @@ export interface WorkPackageResourceEmbedded {
 
 export interface WorkPackageResourceLinks extends WorkPackageResourceEmbedded {
   addAttachment(attachment:HalResource):ng.IPromise<any>;
+
   addChild(child:HalResource):ng.IPromise<any>;
+
   addComment(comment:HalResource):ng.IPromise<any>;
+
   addRelation(relation:any):ng.IPromise<any>;
+
   addWatcher(watcher:HalResource):ng.IPromise<any>;
+
   changeParent(params:any):ng.IPromise<any>;
+
   copy():ng.IPromise<WorkPackageResource>;
+
   delete():ng.IPromise<any>;
+
   logTime():ng.IPromise<any>;
+
   move():ng.IPromise<any>;
+
   removeWatcher():ng.IPromise<any>;
+
   self():ng.IPromise<any>;
+
   update(payload:any):ng.IPromise<any>;
+
   updateImmediately(payload:any):ng.IPromise<any>;
+
   watch():ng.IPromise<any>;
 }
 
@@ -124,7 +142,12 @@ export class WorkPackageResource extends HalResource {
   public attachments:AttachmentCollectionResourceInterface;
 
   public pendingAttachments:UploadFile[] = [];
-  public overriddenSchema?:SchemaResource;
+
+  // The current work package form
+  public wpForm = input<FormResourceInterface>();
+
+  // The changeset of this work package
+  public changeset:HalChangeset = new HalChangeset(this);
 
   public get id():string {
     return this.$source.id || this.idFromLink;
@@ -186,10 +209,10 @@ export class WorkPackageResource extends HalResource {
     super.$initialize(source);
 
     var attachments:{ $source:any, $loaded:boolean } = this.attachments || {
-        $source: void 0,
-        $loaded: false
-      };
-    this.attachments = new AttachmentCollectionResource(
+      $source: void 0,
+      $loaded: false
+    };
+    this.$embedded.attachments = new AttachmentCollectionResource(
       attachments.$source,
       attachments.$loaded
     );
@@ -333,8 +356,7 @@ export class WorkPackageResource extends HalResource {
    * @param form
    */
   public initializeNewResource(form:any) {
-    this.overriddenSchema = form.schema;
-    this.form = $q.when(form);
+    this.wpForm.putValue(form);
     this.$source.id = 'new';
 
     // Set update link to form
@@ -352,6 +374,15 @@ export class WorkPackageResource extends HalResource {
     return _.without(super.$linkableKeys(), 'schema');
   }
 
+  public onValueChanged(key:string):void {
+    // Update the form for fields that may alter the form itself
+    // when the work package is new. Otherwise, the save request afterwards
+    // will update the form automatically.
+    if (this.isNew && (key === 'project' || key === 'type')) {
+      this.updateForm();
+    }
+  }
+
   /**
    * Get the current schema, assuming it is either:
    * 1. Overridden by the current loaded form
@@ -360,8 +391,8 @@ export class WorkPackageResource extends HalResource {
    * If it is neither, an exception is raised.
    */
   public get schema():SchemaResource {
-    if (this.hasOverriddenSchema) {
-      return this.overriddenSchema!;
+    if (this.wpForm.hasValue()) {
+      return this.wpForm.value!.schema;
     }
 
     const state = schemaCacheService.state(this);
@@ -373,9 +404,167 @@ export class WorkPackageResource extends HalResource {
     return state.value!;
   }
 
-  public get hasOverriddenSchema():boolean {
-    return this.overriddenSchema != null;
+  public getForm():Promise<FormResourceInterface> {
+    this.wpForm.putFromPromiseIfPristine(() => {
+      return this.updateForm();
+    });
+
+    if (this.wpForm.hasValue()) {
+      return Promise.resolve(this.wpForm.value);
+    } else {
+      return new Promise((resolve, ) => this.wpForm.valuesPromise().then(resolve));
+    }
   }
+
+  /**
+   * Update the form resource from the API.
+   * @return {angular.IPromise<any>}
+   */
+  public updateForm():ng.IPromise<FormResourceInterface> {
+    let payload = this.buildPayloadFromChanges();
+
+    return this.$links.update(payload)
+      .then((form:FormResourceInterface) => {
+        this.wpForm.putValue(form);
+        return form;
+      })
+      .catch((error:any) => {
+        this.wpForm.clear();
+        this.wpNotificationsService.handleErrorResponse(error, this);
+        return error;
+      });
+  }
+
+  public save():ng.IPromise<WorkPackageResourceInterface> {
+    const deferred = $q.defer();
+
+    this.inFlight = true;
+    const wasNew = this.isNew;
+    this.updateForm()
+      .then((form) => {
+        const payload = this.buildPayloadFromChanges();
+
+        // Reject errors when occurring in form validation
+        const errors = ErrorResource.fromFormResponse(form);
+        if (errors !== null) {
+          return deferred.reject(errors);
+        }
+
+        this.$links.updateImmediately(payload)
+          .then((savedWp:WorkPackageResourceInterface) => {
+            // Initialize any potentially new HAL values
+            this.$initialize(savedWp);
+
+            // Ensure the schema is loaded before updating
+            schemaCacheService.ensureLoaded(this).then(() => {
+              this.updateActivities();
+
+              if (wasNew) {
+                this.uploadAttachmentsAndReload();
+                wpCreate.newWorkPackageCreated(this as any);
+              }
+
+              wpCacheService.updateWorkPackage(this as any);
+              this.wpForm.clear();
+              this.changeset.resetAll();
+              deferred.resolve(this);
+            });
+          })
+          .catch((error:any) => {
+            deferred.reject({
+              errorsOnForm: false,
+              error: error
+            });
+          });
+      })
+      .catch(deferred.reject);
+
+    return deferred.promise.finally(() => this.inFlight = false);
+  }
+
+  /**
+   * Merge the current changes into the payload resource.
+   *
+   * @param {FormResourceInterface} form
+   * @return {any}
+   */
+  private mergeWithPayload(plainPayload:any) {
+    // Fall back to the last known state of the work package should the form not be loaded.
+    let reference = this.$source;
+    if (this.wpForm.hasValue()) {
+      reference = this.wpForm.value!.payload.$source;
+    }
+
+    _.each(this.changeset.entries, (val:HalChangesetEntry, key:string) => {
+      const fieldSchema = this.schema[key];
+      if (!(typeof(fieldSchema) === 'object' && fieldSchema.writable === true)) {
+        debugLog(`Trying to write ${key} but is not writable in schema`);
+        return;
+      }
+
+      // Override in _links if it is a linked property
+      if (reference._links[key]) {
+        plainPayload._links[key] = this.getLinkedValue(val.newValue, fieldSchema);
+      } else {
+        plainPayload[key] = val.newValue;
+      }
+    });
+
+    return plainPayload;
+  }
+
+  /**
+   * Create the payload from the current changes, and extend it with the current lock version.
+   * -- This is the place to add additional logic when the lockVersion changed in between --
+   */
+  private buildPayloadFromChanges() {
+    let payload;
+
+    if (this.isNew) {
+      // If the work package is new, we need to pass the entire form payload
+      // to let all default values be transmitted (type, status, etc.)
+      if (this.wpForm.hasValue()) {
+        payload = this.wpForm.value!.payload.$source;
+      } else {
+        payload = this.$source;
+      }
+    } else {
+      // Otherwise, simply use the bare minimum, which is the lock version.
+      payload = this.minimalPayload;
+    }
+
+    return this.mergeWithPayload(payload);
+  }
+
+  private get minimalPayload() {
+    return {lockVersion: this.lockVersion, _links: {}};
+  }
+
+  /**
+   * Extract the link(s) in the given changed value
+   */
+  private getLinkedValue(val:any, fieldSchema:op.FieldSchema) {
+    var isArray = (fieldSchema.type || '').startsWith('[]');
+
+    if (isArray) {
+      var links:{ href:string }[] = [];
+
+      if (val) {
+        var elements = (val.forEach && val) || val.elements;
+
+        elements.forEach((link:{ href:string }) => {
+          if (link.href) {
+            links.push({href: link.href});
+          }
+        });
+      }
+
+      return links;
+    } else {
+      return {href: _.get(val, 'href', null)};
+    }
+  }
+
 }
 
 export interface WorkPackageResourceInterface extends WorkPackageResourceLinks, WorkPackageResourceEmbedded, WorkPackageResource {

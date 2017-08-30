@@ -146,7 +146,7 @@ export class WorkPackageEditFieldHandler {
    * Cancel any pending changes
    */
   public reset() {
-    this.form.changeset.reset(this.fieldName);
+    this.form.workPackage.changeset.reset(this.fieldName);
     this.deactivate(true);
   }
 
@@ -180,7 +180,7 @@ export class WorkPackageEditFieldHandler {
    * Returns whether the field has been changed
    */
   public isChanged():boolean {
-    return this.form.changeset.isOverridden(this.schemaName);
+    return this.form.workPackage.changeset.isChanged(this.schemaName);
   }
 
   /**

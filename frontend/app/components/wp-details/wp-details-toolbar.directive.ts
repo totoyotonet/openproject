@@ -28,10 +28,9 @@
 import {WorkPackageMoreMenuService} from '../work-packages/work-package-more-menu.service';
 
 import {openprojectModule} from '../../angular-modules';
-import {WorkPackageEditingService} from '../wp-edit-form/work-package-editing-service';
+
 function wpDetailsToolbar(
   I18n:op.I18n,
-  wpEditing:WorkPackageEditingService,
   wpMoreMenuService:WorkPackageMoreMenuService) {
 
   return {

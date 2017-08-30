@@ -6,7 +6,6 @@ import {TimelineRenderPass} from './timeline/timeline-render-pass';
 import {SingleRowBuilder} from './rows/single-row-builder';
 import {RelationRenderInfo, RelationsRenderPass} from './relations/relations-render-pass';
 import {timeOutput} from '../../../helpers/debug_output';
-import {WorkPackageEditingService} from '../../wp-edit-form/work-package-editing-service';
 
 export type RenderedRowType = 'primary' | 'relations';
 
@@ -16,7 +15,7 @@ export interface RowRenderInfo {
   // Additional classes to be added by any secondary render passes
   additionalClasses:string[];
   // If this row is a work package, contains a reference to the rendered WP
-  workPackage:WorkPackageResourceInterface|null;
+  workPackage:WorkPackageResourceInterface | null;
   // If this is an additional row not present, this contains a reference to the WP
   // it originated from
   belongsTo?:WorkPackageResourceInterface;
@@ -28,10 +27,9 @@ export interface RowRenderInfo {
   data?:any;
 }
 
-export type RenderedRow = { classIdentifier:string, workPackageId:string|null, hidden:boolean };
+export type RenderedRow = { classIdentifier:string, workPackageId:string | null, hidden:boolean };
 
 export abstract class PrimaryRenderPass {
-  public wpEditing:WorkPackageEditingService;
   public states:States;
   public I18n:op.I18n;
 
@@ -49,7 +47,7 @@ export abstract class PrimaryRenderPass {
 
   constructor(public workPackageTable:WorkPackageTable,
               public rowBuilder:SingleRowBuilder) {
-    $injectFields(this, 'states', 'I18n', 'wpEditing');
+    $injectFields(this, 'states', 'I18n');
 
   }
 
@@ -89,15 +87,18 @@ export abstract class PrimaryRenderPass {
    */
   public refresh(row:RowRenderInfo, workPackage:WorkPackageResourceInterface, body:HTMLElement) {
     let oldRow = jQuery(body).find(`.${row.classIdentifier}`);
-    let replacement:JQuery|null = null;
-    let editing = this.wpEditing.changesetFor(workPackage);
+    let replacement:JQuery | null = null;
+    let form = this.workPackageTable.editing.forms[workPackage.id];
 
-    switch(row.renderType) {
+    switch (row.renderType) {
       case 'primary':
-        replacement =  this.rowBuilder.refreshRow(workPackage, editing, oldRow);
+        replacement = this.rowBuilder.refreshRow(workPackage, form, oldRow);
         break;
       case 'relations':
-        replacement = this.relations.refreshRelationRow(row as RelationRenderInfo, workPackage, editing, oldRow);
+        replacement = this.relations.refreshRelationRow(row as RelationRenderInfo,
+          workPackage,
+          form,
+          oldRow);
     }
 
     if (replacement !== null && oldRow.length) {
@@ -134,7 +135,6 @@ export abstract class PrimaryRenderPass {
     const index = target.index();
     this.renderedOrder.splice(index + 1, 0, renderedInfo);
   }
-
 
   protected prepare() {
     this.timeline = new TimelineRenderPass(this.workPackageTable, this);

@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import {$injectFields, $injectNow} from '../../../angular/angular-injector-bridge.functions';
+import {$injectFields} from '../../../angular/angular-injector-bridge.functions';
 import {WorkPackageResourceInterface} from '../../../api/api-v3/hal-resources/work-package-resource.service';
 import {
   calculatePositionValueForDayCount,
@@ -9,22 +9,28 @@ import {
   timelineMarkerSelectionStartClass
 } from '../wp-timeline';
 import {
-  classNameFarRightLabel, classNameHideOnHover, classNameHoverStyle, classNameLeftHoverLabel,
+  classNameFarRightLabel,
+  classNameHideOnHover,
+  classNameHoverStyle,
+  classNameLeftHoverLabel,
   classNameLeftLabel,
-  classNameRightContainer, classNameRightHoverLabel,
+  classNameRightContainer,
+  classNameRightHoverLabel,
   classNameRightLabel,
   classNameShowOnHover,
   WorkPackageCellLabels
 } from './wp-timeline-cell';
-import {classNameBarLabel, classNameLeftHandle, classNameRightHandle} from './wp-timeline-cell-mouse-handler';
-import Moment = moment.Moment;
+import {
+  classNameBarLabel,
+  classNameLeftHandle,
+  classNameRightHandle
+} from './wp-timeline-cell-mouse-handler';
 import {WorkPackageTimelineTableController} from '../container/wp-timeline-container.directive';
 import {hasChildrenInTable} from '../../../wp-fast-table/helpers/wp-table-hierarchy-helpers';
-import {WorkPackageChangeset} from '../../../wp-edit-form/work-package-changeset';
 import {WorkPackageTableTimelineService} from '../../../wp-fast-table/state/wp-table-timeline.service';
-import WorkPackagesHelper = op.WorkPackagesHelper;
 import {DisplayFieldRenderer} from '../../../wp-edit-form/display-field-renderer';
-import {TimelineLabels} from '../../../api/api-v3/hal-resources/query-resource.service';
+import Moment = moment.Moment;
+import WorkPackagesHelper = op.WorkPackagesHelper;
 
 interface CellDateMovement {
   // Target values to move work package to
@@ -84,30 +90,30 @@ export class TimelineCellRenderer {
    * For generic work packages, assigns start and due date.
    *
    */
-  public assignDateValues(changeset:WorkPackageChangeset,
+  public assignDateValues(workPackage:WorkPackageResourceInterface,
                           labels:WorkPackageCellLabels,
                           dates:CellDateMovement) {
 
-    this.assignDate(changeset, 'startDate', dates.startDate!);
-    this.assignDate(changeset, 'dueDate', dates.dueDate!);
+    this.assignDate(workPackage, 'startDate', dates.startDate!);
+    this.assignDate(workPackage, 'dueDate', dates.dueDate!);
 
-    this.updateLabels(true, labels, changeset);
+    this.updateLabels(true, labels, workPackage);
   }
 
   /**
    * Handle movement by <delta> days of the work package to either (or both) edge(s)
    * depending on which initial date was set.
    */
-  public onDaysMoved(changeset:WorkPackageChangeset,
+  public onDaysMoved(workPackage:WorkPackageResourceInterface,
                      dayUnderCursor:Moment,
                      delta:number,
                      direction:'left' | 'right' | 'both' | 'create' | 'dragright'):CellDateMovement {
 
-    const initialStartDate = changeset.workPackage.startDate;
-    const initialDueDate = changeset.workPackage.dueDate;
+    const initialStartDate = workPackage.changeset.getOldValue('startDate');
+    const initialDueDate = workPackage.changeset.getOldValue('dueDate');
 
-    const startDate = moment(changeset.value('startDate'));
-    const dueDate = moment(changeset.value('dueDate'));
+    const startDate = moment(workPackage.startDate);
+    const dueDate = moment(workPackage.dueDate);
 
     let dates:CellDateMovement = {};
 
@@ -128,9 +134,9 @@ export class TimelineCellRenderer {
 
     // avoid negative "overdrag" if only start or due are changed
     if (direction !== 'both') {
-      if (dates.startDate != undefined && dates.startDate.isAfter(dueDate)) {
+      if (dates.startDate !== undefined && dates.startDate.isAfter(dueDate)) {
         dates.startDate = dueDate;
-      } else if (dates.dueDate != undefined && dates.dueDate.isBefore(startDate)) {
+      } else if (dates.dueDate !== undefined && dates.dueDate.isBefore(startDate)) {
         dates.dueDate = startDate;
       }
     }
@@ -151,7 +157,7 @@ export class TimelineCellRenderer {
       return 'both'; // irrelevant
     }
 
-    const changeset = renderInfo.changeset;
+    const workPackage = renderInfo.workPackage;
     let direction:'left' | 'right' | 'both' | 'dragright';
 
     // Update the cursor and maybe set start/due values
@@ -159,15 +165,15 @@ export class TimelineCellRenderer {
       // only left
       direction = 'left';
       this.workPackageTimeline.forceCursor('col-resize');
-      if (changeset.value('startDate') === null) {
-        changeset.setValue('startDate', changeset.value('dueDate'));
+      if (!workPackage.startDate) {
+        workPackage.startDate = workPackage.dueDate;
       }
     } else if (jQuery(ev.target).hasClass(classNameRightHandle) || dateForCreate) {
       // only right
       direction = 'right';
       this.workPackageTimeline.forceCursor('col-resize');
-      if (changeset.value('dueDate') === null) {
-        changeset.setValue('dueDate', changeset.value('startDate'));
+      if (!workPackage.dueDate) {
+        workPackage.dueDate = workPackage.startDate;
       }
     } else {
       // both
@@ -176,18 +182,18 @@ export class TimelineCellRenderer {
     }
 
     if (dateForCreate) {
-      changeset.setValue('startDate', dateForCreate);
-      changeset.setValue('dueDate', dateForCreate);
+      workPackage.startDate = dateForCreate;
+      workPackage.dueDate = dateForCreate;
       direction = 'dragright';
     }
 
-    this.updateLabels(true, labels, renderInfo.changeset);
+    this.updateLabels(true, labels, renderInfo.workPackage);
 
     return direction;
   }
 
-  public onMouseDownEnd(labels:WorkPackageCellLabels, changeset:WorkPackageChangeset) {
-    this.updateLabels(false, labels, changeset);
+  public onMouseDownEnd(labels:WorkPackageCellLabels, workPackage:WorkPackageResourceInterface) {
+    this.updateLabels(false, labels, workPackage);
   }
 
   /**
@@ -195,14 +201,14 @@ export class TimelineCellRenderer {
    *         false, if the element must be removed from the timeline.
    */
   public update(bar:HTMLDivElement, labels:WorkPackageCellLabels|null, renderInfo:RenderInfo):boolean {
-    const changeset = renderInfo.changeset;
+    const workPackage = renderInfo.workPackage;
 
     // general settings - bar
     bar.style.backgroundColor = this.typeColor(renderInfo.workPackage);
 
     const viewParams = renderInfo.viewParams;
-    let start = moment(changeset.value('startDate'));
-    let due = moment(changeset.value('dueDate'));
+    let start = moment(workPackage.startDate);
+    let due = moment(workPackage.dueDate);
 
     if (_.isNaN(start.valueOf()) && _.isNaN(due.valueOf())) {
       bar.style.visibility = 'hidden';
@@ -242,7 +248,7 @@ export class TimelineCellRenderer {
 
     // Update labels if any
     if (labels) {
-      this.updateLabels(false, labels, changeset);
+      this.updateLabels(false, labels, workPackage);
     }
 
     this.checkForActiveSelectionMode(renderInfo, bar);
@@ -263,10 +269,10 @@ export class TimelineCellRenderer {
   }
 
   getMarginLeftOfLeftSide(renderInfo:RenderInfo):number {
-    const changeset = renderInfo.changeset;
+    const workPackage = renderInfo.workPackage;
 
-    let start = moment(changeset.value('startDate'));
-    let due = moment(changeset.value('dueDate'));
+    let start = moment(workPackage.startDate);
+    let due = moment(workPackage.dueDate);
     start = _.isNaN(start.valueOf()) ? due.clone() : start;
 
     const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days');
@@ -275,10 +281,10 @@ export class TimelineCellRenderer {
   }
 
   getMarginLeftOfRightSide(renderInfo:RenderInfo):number {
-    const changeset = renderInfo.changeset;
+    const workPackage = renderInfo.workPackage;
 
-    let start = moment(changeset.value('startDate'));
-    let due = moment(changeset.value('dueDate'));
+    let start = moment(workPackage.startDate);
+    let due = moment(workPackage.dueDate);
 
     start = _.isNaN(start.valueOf()) ? due.clone() : start;
     due = _.isNaN(due.valueOf()) ? start.clone() : due;
@@ -354,7 +360,7 @@ export class TimelineCellRenderer {
     element.appendChild(labelHoverRight);
 
     const labels = new WorkPackageCellLabels(labelCenter, labelLeft, labelHoverLeft, labelRight, labelHoverRight, labelFarRight);
-    this.updateLabels(false, labels, renderInfo.changeset);
+    this.updateLabels(false, labels, renderInfo.workPackage);
 
     return labels;
   }
@@ -368,9 +374,9 @@ export class TimelineCellRenderer {
     return this.fallbackColor;
   }
 
-  protected assignDate(changeset:WorkPackageChangeset, attributeName:string, value:moment.Moment) {
+  protected assignDate(workPackage:WorkPackageResourceInterface, attributeName:string, value:moment.Moment) {
     if (value) {
-      changeset.setValue(attributeName, value.format('YYYY-MM-DD'));
+      workPackage[attributeName] = value.format('YYYY-MM-DD');
     }
   }
 
@@ -402,27 +408,27 @@ export class TimelineCellRenderer {
 
   protected updateLabels(activeDragNDrop:boolean,
                          labels:WorkPackageCellLabels,
-                         changeset:WorkPackageChangeset) {
+                         workPackage:WorkPackageResourceInterface) {
 
-    const labelConfiguration = this.wpTableTimeline.getNormalizedLabels(changeset.workPackage);
+    const labelConfiguration = this.wpTableTimeline.getNormalizedLabels(workPackage);
 
     if (!activeDragNDrop) {
       // normal display
-      this.renderLabel(changeset, labels, 'left', labelConfiguration.left);
-      this.renderLabel(changeset, labels, 'right', labelConfiguration.right);
-      this.renderLabel(changeset, labels, 'farRight', labelConfiguration.farRight);
+      this.renderLabel(workPackage, labels, 'left', labelConfiguration.left);
+      this.renderLabel(workPackage, labels, 'right', labelConfiguration.right);
+      this.renderLabel(workPackage, labels, 'farRight', labelConfiguration.farRight);
     }
 
     // Update hover labels
-    this.renderHoverLabels(labels, changeset);
+    this.renderHoverLabels(labels, workPackage);
   }
 
-  protected renderHoverLabels(labels:WorkPackageCellLabels, changeset:WorkPackageChangeset) {
-    this.renderLabel(changeset, labels, 'leftHover', 'startDate');
-    this.renderLabel(changeset, labels, 'rightHover', 'dueDate');
+  protected renderHoverLabels(labels:WorkPackageCellLabels, workPackage:WorkPackageResourceInterface) {
+    this.renderLabel(workPackage, labels, 'leftHover', 'startDate');
+    this.renderLabel(workPackage, labels, 'rightHover', 'dueDate');
   }
 
-  protected renderLabel(changeset:WorkPackageChangeset,
+  protected renderLabel(workPackage:WorkPackageResourceInterface,
                         labels:WorkPackageCellLabels,
                         position:LabelPosition|'leftHover'|'rightHover',
                         attribute:string|null) {
@@ -443,7 +449,7 @@ export class TimelineCellRenderer {
     }
 
     // Get the rendered field
-    let [field, span] = this.fieldRenderer.renderFieldValue(changeset.workPackage, attribute);
+    let [field, span] = this.fieldRenderer.renderFieldValue(workPackage, attribute);
 
     if (label && field && span) {
       label.appendChild(span);

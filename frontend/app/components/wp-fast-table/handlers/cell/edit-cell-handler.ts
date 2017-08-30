@@ -1,7 +1,6 @@
 import {debugLog} from '../../../../helpers/debug_output';
 import {$injectFields} from '../../../angular/angular-injector-bridge.functions';
 import {States} from '../../../states.service';
-import {TableRowEditContext} from '../../../wp-edit-form/table-row-edit-context';
 import {tableRowClassName} from '../../builders/rows/single-row-builder';
 import {WorkPackageTable} from '../../wp-fast-table';
 import {ClickOrEnterHandler} from '../click-or-enter-handler';
@@ -11,14 +10,11 @@ import {
   editableClassName,
   readOnlyClassName
 } from '../../../wp-edit-form/display-field-renderer';
-import {WorkPackageEditingService} from '../../../wp-edit-form/work-package-editing-service';
 import {ClickPositionMapper} from '../../../common/set-click-position/set-click-position';
-import {WorkPackageEditForm} from '../../../wp-edit-form/work-package-edit-form';
 
 export class EditCellHandler extends ClickOrEnterHandler implements TableEventHandler {
   // Injections
   public states:States;
-  public wpEditing:WorkPackageEditingService;
 
   // Keep a reference to all
 
@@ -36,7 +32,7 @@ export class EditCellHandler extends ClickOrEnterHandler implements TableEventHa
 
   constructor(table:WorkPackageTable) {
     super();
-    $injectFields(this, 'states', 'wpEditing');
+    $injectFields(this, 'states');
   }
 
   protected processEvent(table:WorkPackageTable, evt:JQueryEventObject):boolean {

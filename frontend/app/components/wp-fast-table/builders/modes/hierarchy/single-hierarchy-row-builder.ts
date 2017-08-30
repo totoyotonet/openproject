@@ -1,19 +1,11 @@
 import {WorkPackageTable} from '../../../wp-fast-table';
-import {WorkPackageTableRow} from '../../../wp-table.interfaces';
 import {WorkPackageResourceInterface} from '../../../../api/api-v3/hal-resources/work-package-resource.service';
 import {WorkPackageTableHierarchiesService} from '../../../state/wp-table-hierarchy.service';
 import {$injectFields} from '../../../../angular/angular-injector-bridge.functions';
-import {WorkPackageEditForm} from '../../../../wp-edit-form/work-package-edit-form';
-import {
-  collapsedGroupClass,
-  hasChildrenInTable,
-  hierarchyRootClass
-} from '../../../helpers/wp-table-hierarchy-helpers';
-import {UiStateLinkBuilder} from '../../ui-state-link-builder';
-import {QueryColumn} from '../../../../wp-query/query-column';
+import {collapsedGroupClass, hasChildrenInTable} from '../../../helpers/wp-table-hierarchy-helpers';
 import {SingleRowBuilder} from '../../rows/single-row-builder';
 import {States} from '../../../../states.service';
-import {WorkPackageChangeset} from '../../../../wp-edit-form/work-package-changeset';
+import {WorkPackageEditForm} from '../../../../wp-edit-form/work-package-edit-form';
 
 export const indicatorCollapsedClass = '-hierarchy-collapsed';
 export const hierarchyCellClassName = 'wp-table--hierarchy-span';
@@ -47,9 +39,9 @@ export class SingleHierarchyRowBuilder extends SingleRowBuilder {
    * Refresh a single row after structural changes.
    * Remembers and re-adds the hierarchy indicator if neccessary.
    */
-  public refreshRow(workPackage:WorkPackageResourceInterface, changeset:WorkPackageChangeset, jRow:JQuery):JQuery {
+  public refreshRow(workPackage:WorkPackageResourceInterface, form:WorkPackageEditForm|undefined, jRow:JQuery):JQuery {
     // Remove any old hierarchy
-    const newRow = super.refreshRow(workPackage, changeset, jRow);
+    const newRow = super.refreshRow(workPackage, form, jRow);
     newRow.find(`.wp-table--hierarchy-span`).remove();
     this.appendHierarchyIndicator(workPackage, newRow);
 

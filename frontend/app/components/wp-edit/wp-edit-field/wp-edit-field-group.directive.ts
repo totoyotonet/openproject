@@ -29,7 +29,6 @@
 import {WorkPackageEditFieldController} from './wp-edit-field.directive';
 import {States} from '../../states.service';
 import {opWorkPackagesModule} from '../../../angular-modules';
-import {WorkPackageEditingService} from '../../wp-edit-form/work-package-editing-service';
 import {WorkPackageEditForm} from '../../wp-edit-form/work-package-edit-form';
 import {SingleViewEditContext} from '../../wp-edit-form/single-view-edit-context';
 import {input} from 'reactivestates';
@@ -37,6 +36,7 @@ import {scopeDestroyed$} from '../../../helpers/angular-rx-utils';
 import {WorkPackageResourceInterface} from '../../api/api-v3/hal-resources/work-package-resource.service';
 import {WorkPackageTableSelection} from '../../wp-fast-table/state/wp-table-selection.service';
 import {WorkPackageNotificationService} from '../wp-notification.service';
+import {WorkPackageCacheService} from '../../work-packages/work-package-cache.service';
 
 export class WorkPackageEditFieldGroupController {
   public workPackage:WorkPackageResourceInterface
@@ -50,7 +50,7 @@ export class WorkPackageEditFieldGroupController {
   constructor(protected $scope:ng.IScope,
               protected $state:ng.ui.IStateService,
               protected states:States,
-              protected wpEditing:WorkPackageEditingService,
+              protected wpCacheService:WorkPackageCacheService,
               protected wpNotificationsService:WorkPackageNotificationService,
               protected wpTableSelection:WorkPackageTableSelection,
               protected $rootScope:ng.IRootScopeService,
@@ -131,7 +131,8 @@ export class WorkPackageEditFieldGroupController {
   }
 
   public stop() {
-    this.wpEditing.stopEditing(this.workPackage.id);
+    this.workPackage.resetAllCanges();
+    this.wpCacheService.updateWorkPackage(this.workPackage);
   }
 
   public saveWorkPackage() {
@@ -144,8 +145,6 @@ export class WorkPackageEditFieldGroupController {
   }
 
   public onSaved(isInitial:boolean, savedWorkPackage:WorkPackageResourceInterface) {
-    this.wpEditing.stopEditing(this.workPackage.id);
-
     if (this.successState) {
       this.$state.go(this.successState, {workPackageId: savedWorkPackage.id})
         .then(() => {

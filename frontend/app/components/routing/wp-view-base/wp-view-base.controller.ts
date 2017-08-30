@@ -34,7 +34,6 @@ import {WorkPackageCacheService} from '../../work-packages/work-package-cache.se
 import {KeepTabService} from '../../wp-panels/keep-tab/keep-tab.service';
 import {WorkPackageTableRefreshService} from '../../wp-table/wp-table-refresh-request.service';
 import {$injectFields} from '../../angular/angular-injector-bridge.functions';
-import {WorkPackageEditingService} from '../../wp-edit-form/work-package-editing-service';
 
 export class WorkPackageViewController {
 
@@ -48,7 +47,6 @@ export class WorkPackageViewController {
   protected PathHelper:op.PathHelper;
   protected I18n:op.I18n;
   protected wpTableRefresh:WorkPackageTableRefreshService;
-  protected wpEditing:WorkPackageEditingService;
 
   // Helper promise to detect when the controller has been initialized
   // (when a WP has loaded).
@@ -67,7 +65,7 @@ export class WorkPackageViewController {
   constructor(public $scope:ng.IScope,
               protected workPackageId:string) {
     $injectFields(this, '$q', '$state', 'keepTab', 'wpCacheService', 'WorkPackageService',
-      'states', 'wpEditing', 'PathHelper', 'I18n', 'wpTableRefresh');
+      'states', 'PathHelper', 'I18n', 'wpTableRefresh');
 
     this.initialized = this.$q.defer();
     this.initializeTexts();

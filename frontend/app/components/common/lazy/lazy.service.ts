@@ -26,17 +26,22 @@
 // See doc/COPYRIGHT.rdoc for more details.
 // ++
 
-function lazy (obj:any, property:string, getter:{():any}, setter?:{(value:any):void}):void {
+import {HalResource} from '../../api/api-v3/hal-resources/hal-resource.service';
+
+function lazy(obj:HalResource, property:string, getter:{ ():any }, setter?:{ (value:any):void }):void {
   if (angular.isObject(obj)) {
     let done = false;
-    let value:any;
+    let cached:any;
     let config:any = {
       get() {
+        if (!!obj.changeset && obj.changeset.isChanged(property)) {
+          return obj.changeset.entries[property].newValue;
+        }
         if (!done) {
-          value = getter();
+          cached = getter();
           done = true;
         }
-        return value;
+        return cached;
       },
       set: ():void => undefined,
 
@@ -46,8 +51,16 @@ function lazy (obj:any, property:string, getter:{():any}, setter?:{(value:any):v
 
     if (setter) {
       config.set = (val:any) => {
-        value = setter(val);
-        done = true;
+        let newValue = setter(val);
+
+        if (!!obj.changeset) {
+          let oldValue = getter();
+          obj.changeset.setValue(property, oldValue, newValue);
+          obj.onValueChanged(property, oldValue, newValue);
+        } else {
+          cached = newValue;
+          done = true;
+        }
       };
     }
 
@@ -58,3 +71,4 @@ function lazy (obj:any, property:string, getter:{():any}, setter?:{(value:any):v
 angular
   .module('openproject.services')
   .factory('lazy', () => lazy);
+

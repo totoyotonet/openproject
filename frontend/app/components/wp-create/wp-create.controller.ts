@@ -35,15 +35,12 @@ import {WorkPackageCacheService} from '../work-packages/work-package-cache.servi
 import {WorkPackageNotificationService} from '../wp-edit/wp-notification.service';
 import {WorkPackageCreateService} from './wp-create.service';
 import {scopedObservable} from '../../helpers/angular-rx-utils';
-import {WorkPackageEditingService} from '../wp-edit-form/work-package-editing-service';
-import {WorkPackageChangeset} from '../wp-edit-form/work-package-changeset';
 import {WorkPackageFilterValues} from '../wp-edit-form/work-package-filter-values';
 import {WorkPackageTableFiltersService} from '../wp-fast-table/state/wp-table-filters.service';
 
 export class WorkPackageCreateController {
   public newWorkPackage:WorkPackageResourceInterface;
   public parentWorkPackage:WorkPackageResourceInterface;
-  public changeset:WorkPackageChangeset;
 
   constructor(protected $state:ng.ui.IStateService,
               protected $scope:ng.IScope,
@@ -53,7 +50,6 @@ export class WorkPackageCreateController {
               protected wpNotificationsService:WorkPackageNotificationService,
               protected states:States,
               protected wpCreate:WorkPackageCreateService,
-              protected wpEditing:WorkPackageEditingService,
               protected wpTableFilters:WorkPackageTableFiltersService,
               protected wpCacheService:WorkPackageCacheService,
               protected v3Path:any,
@@ -61,19 +57,14 @@ export class WorkPackageCreateController {
               protected RootDm:RootDmService) {
 
     this.newWorkPackageFromParams($state.params)
-      .then((changeset:WorkPackageChangeset) => {
-        this.changeset = changeset;
-        this.newWorkPackage = changeset.workPackage;
+      .then((workPackage:WorkPackageResourceInterface) => {
+        this.newWorkPackage = workPackage;
 
 
-        this.wpEditing.updateValue('new', changeset);
-        wpCacheService.updateWorkPackage(changeset.workPackage);
+        wpCacheService.updateWorkPackage(workPackage);
 
         if ($state.params['parent_id']) {
-          this.changeset.setValue(
-            'parent',
-            {href: v3Path.wp({wp: $state.params['parent_id']})}
-          );
+          workPackage.parent = {href: v3Path.wp({wp: $state.params['parent_id']})};
         }
 
         // Load the parent simply to display the type name :-/
@@ -109,16 +100,16 @@ export class WorkPackageCreateController {
     const type = parseInt(stateParams.type);
 
     // If there is an open edit for this type, continue it
-    const changeset = this.wpEditing.state('new').value;
-    if (changeset !== undefined) {
-      const changeType = changeset.workPackage.type;
+    const workPackage = this.wpCacheService.state('new').value;
+    if (workPackage !== undefined) {
+      const changeType = workPackage.type;
 
-      const hasChanges = !changeset.empty;
+      const hasChanges = workPackage.hasChanges;
       const typeEmpty = (!changeType && !type);
       const typeMatches = (changeType && changeType.idFromLink === type.toString());
 
       if (hasChanges && (typeEmpty || typeMatches)) {
-        return this.$q.when(changeset);
+        return this.$q.when(workPackage);
       }
     }
 
@@ -129,7 +120,7 @@ export class WorkPackageCreateController {
   }
 
   public cancelAndBackToList() {
-    this.wpEditing.stopEditing(this.newWorkPackage.id);
+    this.wpCacheService.clearSome(this.newWorkPackage.id);
     this.$state.go('work-packages.list', this.$state.params);
   }
 }

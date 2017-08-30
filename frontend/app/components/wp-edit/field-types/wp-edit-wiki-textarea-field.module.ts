@@ -93,7 +93,7 @@ export class WikiTextareaEditField extends EditField {
 
     if (this.isPreview) {
       this.isBusy = true;
-      this.changeset.getForm().then((form:any) => {
+      this.workPackage.getForm().then((form:any) => {
         const link = form.previewMarkup.$link;
         this.$http({
           method: link.method,

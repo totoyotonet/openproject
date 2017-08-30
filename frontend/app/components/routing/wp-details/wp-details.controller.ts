@@ -26,13 +26,11 @@
 // See doc/COPYRIGHT.rdoc for more details.
 // ++
 
-import {wpControllersModule} from "../../../angular-modules";
-import {scopedObservable} from "../../../helpers/angular-rx-utils";
-import {States} from "../../states.service";
-import {WorkPackageTableSelection} from "../../wp-fast-table/state/wp-table-selection.service";
-import {KeepTabService} from "../../wp-panels/keep-tab/keep-tab.service";
-import {WorkPackageViewController} from "../wp-view-base/wp-view-base.controller";
-import {WorkPackageEditingService} from '../../wp-edit-form/work-package-editing-service';
+import {wpControllersModule} from '../../../angular-modules';
+import {States} from '../../states.service';
+import {WorkPackageTableSelection} from '../../wp-fast-table/state/wp-table-selection.service';
+import {KeepTabService} from '../../wp-panels/keep-tab/keep-tab.service';
+import {WorkPackageViewController} from '../wp-view-base/wp-view-base.controller';
 
 export class WorkPackageDetailsController extends WorkPackageViewController {
 

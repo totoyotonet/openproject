@@ -8,10 +8,9 @@ import {$injectFields} from '../../../angular/angular-injector-bridge.functions'
 import {WorkPackageTableColumnsService} from '../../state/wp-table-columns.service';
 import {relationGroupClass, RelationRowBuilder} from './relation-row-builder';
 import {WorkPackageRelationsService} from '../../../wp-relations/wp-relations.service';
-import {WorkPackageEditForm} from '../../../wp-edit-form/work-package-edit-form';
 import {WorkPackageResourceInterface} from '../../../api/api-v3/hal-resources/work-package-resource.service';
 import {RelationResource} from '../../../api/api-v3/hal-resources/relation-resource.service';
-import {WorkPackageChangeset} from '../../../wp-edit-form/work-package-changeset';
+import {WorkPackageEditForm} from '../../../wp-edit-form/work-package-edit-form';
 
 export interface RelationRenderInfo extends RowRenderInfo {
   data:{
@@ -103,9 +102,9 @@ export class RelationsRenderPass {
 
   public refreshRelationRow(renderedRow:RelationRenderInfo,
                             workPackage:WorkPackageResourceInterface,
-                            changeset:WorkPackageChangeset,
+                            form:WorkPackageEditForm|undefined,
                             oldRow:JQuery) {
-    const newRow = this.relationRowBuilder.refreshRow(workPackage, changeset, oldRow);
+    const newRow = this.relationRowBuilder.refreshRow(workPackage, form, oldRow);
     this.relationRowBuilder.appendRelationLabel(newRow,
       renderedRow.belongsTo!,
       renderedRow.data.relation,

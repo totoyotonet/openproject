@@ -4,7 +4,6 @@ import {WorkPackageResourceInterface} from '../../../api/api-v3/hal-resources/wo
 import {MarkupModel} from './markup-model';
 import {WorkPackageCacheService} from '../../work-package-cache.service';
 import {$injectFields} from '../../../angular/angular-injector-bridge.functions';
-import {WorkPackageChangeset} from '../../../wp-edit-form/work-package-changeset';
 
 export class WorkPackageFieldModel implements IApplyAttachmentMarkup {
   public wpCacheService:WorkPackageCacheService;
@@ -37,10 +36,9 @@ export class WorkPackageFieldModel implements IApplyAttachmentMarkup {
     let value = this.workPackage[this.attribute] || { raw: '', html: '' };
     value.raw = this.contentToInsert;
 
-    const changeset = new WorkPackageChangeset(this.workPackage);
-    changeset.setValue(this.attribute, value);
+    this.workPackage[this.attribute] = value;
 
-    changeset
+    this.workPackage
       .save()
       .then((wp) => {
         // Refresh the work package some time later as there is no way to tell

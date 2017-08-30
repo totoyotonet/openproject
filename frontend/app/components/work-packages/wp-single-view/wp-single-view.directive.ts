@@ -33,10 +33,7 @@ import {WorkPackageResourceInterface} from '../../api/api-v3/hal-resources/work-
 import {DisplayField} from '../../wp-display/wp-display-field/wp-display-field.module';
 import {WorkPackageDisplayFieldService} from '../../wp-display/wp-display-field/wp-display-field.service';
 import {WorkPackageCacheService} from '../work-package-cache.service';
-import {WorkPackageEditFieldGroupController} from "../../wp-edit/wp-edit-field/wp-edit-field-group.directive";
-import {
-  WorkPackageEditingService
-} from '../../wp-edit-form/work-package-editing-service';
+import {WorkPackageEditFieldGroupController} from '../../wp-edit/wp-edit-field/wp-edit-field-group.directive';
 import {States} from '../../states.service';
 import {CurrentProjectService} from '../../projects/current-project.service';
 
@@ -79,7 +76,6 @@ export class WorkPackageSingleViewController {
               protected currentProject:CurrentProjectService,
               protected PathHelper:any,
               protected states:States,
-              protected wpEditing:WorkPackageEditingService,
               protected wpDisplayField:WorkPackageDisplayFieldService,
               protected wpCacheService:WorkPackageCacheService) {
   }
@@ -92,7 +88,7 @@ export class WorkPackageSingleViewController {
       this.workPackage.attachments.updateElements();
     }
 
-    scopedObservable(this.$scope, this.wpEditing.temporaryEditResource(this.workPackage.id).values$())
+    scopedObservable(this.$scope, this.wpCacheService.state(this.workPackage.id).values$())
       .subscribe((resource:WorkPackageResourceInterface) => {
         // Prepare the fields that are required always
         const isNew = this.workPackage.isNew;

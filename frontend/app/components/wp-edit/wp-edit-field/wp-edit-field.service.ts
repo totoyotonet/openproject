@@ -26,19 +26,17 @@
 // See doc/COPYRIGHT.rdoc for more details.
 // ++
 
-import {EditFieldFactory} from './wp-edit-field.module';
-import {EditField} from "./wp-edit-field.module";
+import {EditField, EditFieldFactory} from './wp-edit-field.module';
 import {WorkPackageFieldService} from "../../wp-field/wp-field.service"
-import {WorkPackageEditForm} from '../../wp-edit-form/work-package-edit-form';
-import {WorkPackageChangeset} from '../../wp-edit-form/work-package-changeset';
+import {WorkPackageResourceInterface} from '../../api/api-v3/hal-resources/work-package-resource.service';
 
 export class WorkPackageEditFieldService extends WorkPackageFieldService  {
   public static get fieldFactory() {
     return EditFieldFactory;
   }
 
-  public getField(changeset:WorkPackageChangeset, fieldName:string, schema:op.FieldSchema):EditField {
-    return (this.constructor as typeof WorkPackageEditFieldService).fieldFactory.create(changeset, fieldName, schema);
+  public getField(workPackage:WorkPackageResourceInterface, fieldName:string, schema:op.FieldSchema):EditField {
+    return (this.constructor as typeof WorkPackageEditFieldService).fieldFactory.create(workPackage, fieldName, schema);
   }
 }
 

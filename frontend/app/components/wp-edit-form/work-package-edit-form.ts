@@ -27,7 +27,7 @@
 // ++
 
 import {Subscription} from 'rxjs/Subscription';
-import {$injectFields, injectorBridge} from '../angular/angular-injector-bridge.functions';
+import {$injectFields} from '../angular/angular-injector-bridge.functions';
 import {ErrorResource} from '../api/api-v3/hal-resources/error-resource.service';
 import {States} from '../states.service';
 import {WorkPackageCacheService} from '../work-packages/work-package-cache.service';
@@ -37,9 +37,7 @@ import {WorkPackageNotificationService} from '../wp-edit/wp-notification.service
 import {WorkPackageEditContext} from './work-package-edit-context';
 import {WorkPackageEditFieldHandler} from './work-package-edit-field-handler';
 import {debugLog} from '../../helpers/debug_output';
-import {WorkPackageChangeset} from './work-package-changeset';
 import {FormResourceInterface} from '../api/api-v3/hal-resources/form-resource.service';
-import {WorkPackageEditingService} from './work-package-editing-service';
 import {WorkPackageResourceInterface} from '../api/api-v3/hal-resources/work-package-resource.service';
 import {WorkPackageTableRefreshService} from '../wp-table/wp-table-refresh-request.service';
 
@@ -53,7 +51,6 @@ export class WorkPackageEditForm {
   public $rootScope:ng.IRootScopeService;
   public states:States;
   public wpCacheService:WorkPackageCacheService;
-  public wpEditing:WorkPackageEditingService;
   public wpEditField:WorkPackageEditFieldService;
   public wpTableRefresh:WorkPackageTableRefreshService;
   public wpNotificationsService:WorkPackageNotificationService;
@@ -84,27 +81,17 @@ export class WorkPackageEditForm {
     $injectFields(this,
       'wpCacheService', '$timeout', '$q', '$rootScope',
       'wpEditField', 'wpNotificationsService',
-      'wpEditing', 'states', 'wpTableRefresh'
+      'states', 'wpTableRefresh'
     );
 
-    this.resourceSubscription = this.wpEditing.temporaryEditResource(workPackage.id)
+    this.resourceSubscription = this.wpCacheService.state(workPackage.id)
       .values$()
       .subscribe(() => {
-        if (!this.changeset.empty) {
-          debugLog('Refreshing active edit fields after form update.');
+        if (this.workPackage.hasChanges) {
+          debugLog('Refreshing active edit fields after update');
           _.each(this.activeFields, (_handler, name) => this.refresh(name!));
         }
       });
-  }
-
-  /**
-   * Return the current or a new changeset for the given work package.
-   * This will always return a valid (potentially empty) changeset.
-   *
-   * @return {WorkPackageChangeset}
-   */
-  public get changeset():WorkPackageChangeset {
-    return this.wpEditing.changesetFor(this.workPackage);
   }
 
   /**
@@ -157,7 +144,7 @@ export class WorkPackageEditForm {
    * Activate all fields that are returned in validation errors
    */
   public activateMissingFields() {
-    this.changeset.getForm().then((form:any) => {
+    this.workPackage.getForm().then((form:any) => {
       _.each(form.validationErrors, (val:any, key:string) => {
         if (key === 'id') {
           return;
@@ -168,11 +155,11 @@ export class WorkPackageEditForm {
   }
 
   /**
-   * Save the active changeset.
+   * Save the open changes.
    * @return {any}
    */
   public submit():ng.IPromise<WorkPackageResourceInterface> {
-    if (this.changeset.empty && !this.workPackage.isNew) {
+    if (!this.workPackage.hasChanges && !this.workPackage.isNew) {
       this.closeEditFields();
       return this.$q.when(this.workPackage);
     }
@@ -185,7 +172,7 @@ export class WorkPackageEditForm {
 
     const openFields = _.keys(this.activeFields);
 
-    this.changeset.save()
+    this.workPackage.save()
       .then(savedWorkPackage => {
         // Close all current fields
         this.closeEditFields(openFields);
@@ -235,7 +222,7 @@ export class WorkPackageEditForm {
     fields.forEach((name:string) => {
       const handler = this.activeFields[name];
       handler && handler.deactivate();
-      this.changeset.reset(name);
+      this.workPackage.changeset.reset(name);
     });
   }
 
@@ -286,9 +273,9 @@ export class WorkPackageEditForm {
 
   private buildField(fieldName:string):Promise<EditField> {
     return new Promise((resolve, reject) => {
-      this.changeset.getForm()
+      this.workPackage.getForm()
         .then((form:FormResourceInterface) => {
-          const schemaName = this.changeset.getSchemaName(fieldName);
+          const schemaName = this.workPackage.getSchemaName(fieldName);
           const fieldSchema = form.schema[schemaName];
 
           if (!fieldSchema) {
@@ -296,14 +283,14 @@ export class WorkPackageEditForm {
           }
 
           const field = this.wpEditField.getField(
-            this.changeset,
+            this.workPackage,
             schemaName,
             fieldSchema
           ) as EditField;
 
           resolve(field);
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error('Failed to build edit field: %o', error);
           this.wpNotificationsService.handleRawError(error);
         });

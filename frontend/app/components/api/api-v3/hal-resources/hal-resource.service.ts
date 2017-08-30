@@ -26,12 +26,12 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
-import {InputState} from "reactivestates";
-import {opApiModule} from "../../../../angular-modules";
-import {HalLink, HalLinkInterface} from "../hal-link/hal-link.service";
-import {HalResourceFactoryService} from "../hal-resource-factory/hal-resource-factory.service";
-
-const ObservableArray:any = require('observable-array');
+import {InputState} from 'reactivestates';
+import {opApiModule} from '../../../../angular-modules';
+import {HalLink, HalLinkInterface} from '../hal-link/hal-link.service';
+import {HalResourceFactoryService} from '../hal-resource-factory/hal-resource-factory.service';
+import {HalChangeset} from './hal-changeset';
+import {CollectionResource} from './collection-resource.service';
 
 var $q:ng.IQService;
 var lazy:Function;
@@ -42,12 +42,12 @@ var CacheService:any;
 export class HalResource {
   [attribute:string]:any;
   public _type:string;
+  public changeset?:HalChangeset;
 
   public static create(element:any, force:boolean = false) {
     if (_.isNil(element)) {
       return element;
     }
-
 
     if (!force && !(element._embedded || element._links)) {
       return element;
@@ -61,7 +61,7 @@ export class HalResource {
     return new HalResource(resource, false);
   }
 
-  public static getEmptyResource(self:{href:string|null} = {href: null}):any {
+  public static getEmptyResource(self:{ href:string | null } = {href: null}):any {
     return {_links: {self: self}};
   }
 
@@ -105,11 +105,11 @@ export class HalResource {
    *
    * @deprecated
    */
-  public get href():string|null {
+  public get href():string | null {
     return this.$link.href;
   }
 
-  public get $href():string|null {
+  public get $href():string | null {
     return this.$link.href;
   }
 
@@ -121,8 +121,23 @@ export class HalResource {
   /**
    * Return the associated state to this HAL resource, if any.
    */
-  public get state(): InputState<HalResource> | null {
+  public get state():InputState<HalResource> | null {
     return null;
+  }
+
+  public get hasChanges():boolean {
+    return !!this.changeset && !this.changeset.empty;
+  }
+
+  public onValueChanged(key:string, oldValue:any, newValue:any):void {
+  }
+
+  /**
+   * Update the collection's elements and return them in a promise.
+   * This is useful, as angular does not recognize update made by $load.
+   */
+  public updateElements():any {
+    return this.$load().then((collection:CollectionResource) => this.elements = collection.elements);
   }
 
   public $load(force = false):ng.IPromise<HalResource> {
@@ -186,8 +201,9 @@ export class HalResource {
   }
 
   public $copy() {
-    let clone:any = this.constructor
-    return new clone(_.cloneDeep(this.$source), this.$loaded);;
+    let clone:any = this.constructor;
+    return new clone(_.cloneDeep(this.$source), this.$loaded);
+    
   }
 
   public $initialize(source:any) {
@@ -213,16 +229,16 @@ export class HalResource {
   /**
    * Specify this resource's embedded keys that should be transformed with resources.
    * Use this to restrict, e.g., links that should not be made properties if you have a custom get/setter.
-  */
+   */
   public $embeddableKeys():string[] {
-    const properties = Object.keys(this.$source);
+    const properties = Object.keys(this.$source).filter((val) => val.indexOf('unchanged_') !== 0);
     return _.without(properties, '_links', '_embedded');
   }
 
   /**
    * Specify this resource's keys that should not be transformed with resources.
    * Use this to restrict, e.g., links that should not be made properties if you have a custom get/setter.
-  */
+   */
   public $linkableKeys():string[] {
     const properties = Object.keys(this.$links);
     return _.without(properties, 'self');
@@ -260,18 +276,7 @@ function initializeResource(halResource:HalResource) {
 
   function proxyProperties() {
     halResource.$embeddableKeys().forEach((property:any) => {
-      Object.defineProperty(halResource, property, {
-        get() {
-          return halResource.$source[property];
-        },
-
-        set(value) {
-          halResource.$source[property] = value;
-        },
-
-        enumerable: true,
-        configurable: true
-      });
+      lazy(halResource, property, () => halResource.$source[property], (val:any) => val);
     });
   }
 
@@ -282,18 +287,7 @@ function initializeResource(halResource:HalResource) {
           const link:any = halResource.$links[linkName].$link || halResource.$links[linkName];
 
           if (Array.isArray(link)) {
-            var items = link.map(item => halResource.createLinkedResource(linkName, item.$link));
-            var property:HalResource[] = new ObservableArray(...items).on('change', () => {
-              property.forEach(item => {
-                if (!item.$link) {
-                  property.splice(property.indexOf(item), 1);
-                }
-              });
-
-              halResource.$source._links[linkName] = property.map(item => item.$link);
-            });
-
-            return property;
+            return link.map(item => halResource.createLinkedResource(linkName, item.$link));
           }
 
           if (link.href) {
@@ -354,27 +348,26 @@ function initializeResource(halResource:HalResource) {
     });
   }
 
-  function setter(val:HalResource|{ href?: string }, linkName:string) {
+  function setter(val:HalResource | { href?:string }, linkName:string) {
+    let newValue;
+
     if (!val) {
-      halResource.$source._links[linkName] = {href: null};
+      newValue = {href: null};
     } else if (_.isArray(val)) {
-      halResource.$source._links[linkName] = val.map((el:any) => { return {href: el.href} });
+      newValue = val.map((el:any) => {
+        return {href: el.href};
+      });
     } else if (val.hasOwnProperty('$link')) {
       const link = (val as HalResource).$link;
 
       if (link.href) {
-        halResource.$source._links[linkName] = link;
+        newValue = link;
       }
     } else if ('href' in val) {
-      halResource.$source._links[linkName] = {href: val.href};
+      newValue = {href: val.href};
     }
 
-    if (halResource.$embedded && halResource.$embedded[linkName]) {
-      halResource.$embedded[linkName] = val;
-      halResource.$source._embedded[linkName] = _.get(val, '$source', val);
-    }
-
-    return val;
+    return newValue;
   }
 }
 

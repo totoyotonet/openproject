@@ -81,15 +81,15 @@ export class Field {
 export class FieldFactory {
   public static defaultType:string;
 
-  protected static fields:{[field:string]: string} = {};
-  protected static classes:{[type:string]: any} = {};
+  protected static fields:{ [field:string]:string } = {};
+  protected static classes:{ [type:string]:any } = {};
 
   public static register(fieldClass:typeof Field, fields:string[] = []) {
     fields.forEach((field:string) => this.fields[field] = fieldClass.type);
     this.classes[fieldClass.type] = fieldClass;
   }
 
-  public static create(resource:any,
+  public static create(resource:HalResource,
                        fieldName:string,
                        schema:op.FieldSchema):Field {
     let type = this.getType(schema.type);

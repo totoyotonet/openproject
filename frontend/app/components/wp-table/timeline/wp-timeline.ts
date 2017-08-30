@@ -32,7 +32,6 @@ import {
   WorkPackageResource,
   WorkPackageResourceInterface
 } from '../../api/api-v3/hal-resources/work-package-resource.service';
-import {WorkPackageChangeset} from '../../wp-edit-form/work-package-changeset';
 import {RenderedRow} from '../../wp-fast-table/builders/primary-render-pass';
 import Moment = moment.Moment;
 
@@ -116,7 +115,6 @@ export class TimelineViewParameters {
 export interface RenderInfo {
   viewParams:TimelineViewParameters;
   workPackage:WorkPackageResourceInterface;
-  changeset:WorkPackageChangeset;
 }
 
 /**

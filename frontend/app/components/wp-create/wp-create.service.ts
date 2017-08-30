@@ -35,9 +35,6 @@ import {
   WorkPackageResource,
   WorkPackageResourceInterface
 } from '../api/api-v3/hal-resources/work-package-resource.service';
-import {input, State} from 'reactivestates';
-import {WorkPackageEditingService} from '../wp-edit-form/work-package-editing-service';
-import {WorkPackageChangeset} from '../wp-edit-form/work-package-changeset';
 
 export class WorkPackageCreateService {
   protected form:ng.IPromise<HalResource>;
@@ -74,7 +71,7 @@ export class WorkPackageCreateService {
     var wp = new WorkPackageResource(form.payload.$plain(), true) as any;
     wp.initializeNewResource(form);
 
-    return new WorkPackageChangeset(wp, form);
+    return wp;
   }
 
   /**
@@ -87,10 +84,9 @@ export class WorkPackageCreateService {
 
     // Override values from form payload
     wp.lockVersion = form.payload.lockVersion;
-
     wp.initializeNewResource(form);
 
-    return new WorkPackageChangeset(wp, form);
+    return wp;
   }
 
   public copyWorkPackage(copyFromForm:any, projectIdentifier?:string) {

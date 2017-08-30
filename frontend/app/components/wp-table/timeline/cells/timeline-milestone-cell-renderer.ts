@@ -10,8 +10,6 @@ import {
   WorkPackageCellLabels
 } from './wp-timeline-cell';
 import Moment = moment.Moment;
-import {WorkPackageChangeset} from '../../../wp-edit-form/work-package-changeset';
-import {TimelineLabels} from '../../../api/api-v3/hal-resources/query-resource.service';
 
 interface CellMilestoneMovement {
   // Target value to move milestone to
@@ -55,23 +53,23 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
    * For generic work packages, assigns start and due date.
    *
    */
-  public assignDateValues(changeset:WorkPackageChangeset,
+  public assignDateValues(workPackage:WorkPackageResourceInterface,
                           labels:WorkPackageCellLabels,
                           dates:CellMilestoneMovement) {
 
-    this.assignDate(changeset, 'date', dates.date!);
-    this.updateLabels(true, labels, changeset);
+    this.assignDate(workPackage, 'date', dates.date!);
+    this.updateLabels(true, labels, workPackage);
   }
 
   /**
    * Handle movement by <delta> days of milestone.
    */
-  public onDaysMoved(changeset:WorkPackageChangeset,
+  public onDaysMoved(workPackage:WorkPackageResourceInterface,
                      dayUnderCursor:Moment,
                      delta:number,
                      direction:'left' | 'right' | 'both' | 'create' | 'dragright') {
 
-    const initialDate = changeset.workPackage.date;
+    const initialDate = workPackage.date;
     let dates:CellMilestoneMovement = {};
 
     if (initialDate) {
@@ -98,19 +96,19 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
     this.workPackageTimeline.forceCursor('ew-resize');
 
     if (dateForCreate) {
-      renderInfo.changeset.setValue('date', dateForCreate);
+      renderInfo.workPackage.date = dateForCreate;
       direction = 'create';
       return direction;
     }
 
-    this.updateLabels(true, labels, renderInfo.changeset);
+    this.updateLabels(true, labels, renderInfo.workPackage);
 
     return direction;
   }
 
   public update(element:HTMLDivElement, labels:WorkPackageCellLabels|null, renderInfo:RenderInfo): boolean {
     const viewParams = renderInfo.viewParams;
-    const date = moment(renderInfo.changeset.value('date'));
+    const date = moment(renderInfo.workPackage.date);
 
     // abort if no date
     if (_.isNaN(date.valueOf())) {
@@ -132,7 +130,7 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
 
     // Update labels if any
     if (labels) {
-      this.updateLabels(false, labels, renderInfo.changeset);
+      this.updateLabels(false, labels, renderInfo.workPackage);
     }
 
     this.checkForActiveSelectionMode(renderInfo, diamond);
@@ -141,8 +139,8 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
   }
 
   getMarginLeftOfLeftSide(renderInfo:RenderInfo):number {
-    const changeset = renderInfo.changeset;
-    let start = moment(changeset.value('date') as any);
+    const workPackage = renderInfo.workPackage;
+    let start = moment(workPackage.date);
     const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days');
     return calculatePositionValueForDayCountingPx(renderInfo.viewParams, offsetStart);
   }
@@ -201,41 +199,41 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
     element.appendChild(labelHoverRight);
 
     const labels = new WorkPackageCellLabels(null, labelLeft, null, labelRight, labelHoverRight, labelFarRight);
-    this.updateLabels(false, labels, renderInfo.changeset);
+    this.updateLabels(false, labels, renderInfo.workPackage);
 
     return labels;
   }
 
-  protected renderHoverLabels(labels:WorkPackageCellLabels, changeset:WorkPackageChangeset) {
-    this.renderLabel(changeset, labels, 'rightHover', 'date');
+  protected renderHoverLabels(labels:WorkPackageCellLabels, workPackage:WorkPackageResourceInterface) {
+    this.renderLabel(workPackage, labels, 'rightHover', 'date');
   }
 
   protected updateLabels(activeDragNDrop:boolean,
                          labels:WorkPackageCellLabels,
-                         changeset:WorkPackageChangeset) {
+                         workPackage:WorkPackageResourceInterface) {
 
-    const labelConfiguration = this.wpTableTimeline.getNormalizedLabels(changeset.workPackage);
+    const labelConfiguration = this.wpTableTimeline.getNormalizedLabels(workPackage);
 
     if (!activeDragNDrop) {
       // normal display
 
       // Show only one date field if left=start, right=dueDate
       if (labelConfiguration.left === 'startDate' && labelConfiguration.right === 'dueDate') {
-        this.renderLabel(changeset, labels, 'left', null);
-        this.renderLabel(changeset, labels, 'right', 'date');
+        this.renderLabel(workPackage, labels, 'left', null);
+        this.renderLabel(workPackage, labels, 'right', 'date');
       } else {
-        this.renderLabel(changeset, labels, 'left', labelConfiguration.left);
-        this.renderLabel(changeset, labels, 'right', labelConfiguration.right);
+        this.renderLabel(workPackage, labels, 'left', labelConfiguration.left);
+        this.renderLabel(workPackage, labels, 'right', labelConfiguration.right);
       }
 
-      this.renderLabel(changeset, labels, 'farRight', labelConfiguration.farRight);
+      this.renderLabel(workPackage, labels, 'farRight', labelConfiguration.farRight);
     }
 
     // Update hover labels
-    this.renderHoverLabels(labels, changeset);
+    this.renderHoverLabels(labels, workPackage);
   }
 
-  protected renderLabel(changeset:WorkPackageChangeset,
+  protected renderLabel(workPackage:WorkPackageResourceInterface,
                         labels:WorkPackageCellLabels,
                         position:LabelPosition|'leftHover'|'rightHover',
                         attribute:string|null) {
@@ -244,7 +242,7 @@ export class TimelineMilestoneCellRenderer extends TimelineCellRenderer {
       attribute = 'date';
     }
 
-    super.renderLabel(changeset, labels, position, attribute);
+    super.renderLabel(workPackage, labels, position, attribute);
   }
 
 }

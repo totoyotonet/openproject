@@ -1,21 +1,21 @@
 import {HalResource} from '../api/api-v3/hal-resources/hal-resource.service';
 import {CollectionResource} from '../api/api-v3/hal-resources/collection-resource.service';
 import {FormResourceInterface} from '../api/api-v3/hal-resources/form-resource.service';
-import {WorkPackageChangeset} from './work-package-changeset';
 import {
   QueryFilterInstanceResource,
 } from '../api/api-v3/hal-resources/query-filter-instance-resource.service';
+import {WorkPackageResourceInterface} from '../api/api-v3/hal-resources/work-package-resource.service';
 
 export class WorkPackageFilterValues {
 
-  constructor(private changeset:WorkPackageChangeset,
+  constructor(private workPackage:WorkPackageResourceInterface,
               private filters:QueryFilterInstanceResource[],
               private excluded:string[] = []) {
 
   }
 
   public applyDefaultsFromFilters() {
-    return this.changeset.getForm().then((form) => {
+    return this.workPackage.getForm().then((form) => {
       const promises:Promise<any>[] = [];
       angular.forEach(this.filters, filter => {
         // Ignore any filters except =
@@ -57,8 +57,7 @@ export class WorkPackageFilterValues {
       }
 
       if (newValue) {
-        this.changeset.setValue(field, newValue);
-        this.changeset.workPackage[field] = newValue;
+        this.workPackage[field] = newValue;
       }
     });
   }

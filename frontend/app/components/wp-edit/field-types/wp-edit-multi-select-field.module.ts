@@ -70,7 +70,7 @@ export class MultiSelectEditField extends EditField {
   }
 
   public get value() {
-    const val = this.changeset.value(this.name);
+    const val = this.workPackage[this.name];
 
     if (!Array.isArray(val) || this.isMultiselect) {
       return val;
@@ -80,7 +80,7 @@ export class MultiSelectEditField extends EditField {
   }
 
   public set value(val) {
-    this.changeset.setValue(this.name, this.parseValue(val));
+    this.workPackage[this.name] = this.parseValue(val);
   }
 
   protected parseValue(val:any) {
@@ -92,7 +92,7 @@ export class MultiSelectEditField extends EditField {
   }
 
   public isValueMulti() {
-    const val = this.changeset.value(this.name);
+    const val = this.workPackage[this.name];
     return val && val.length > 1;
   }
 

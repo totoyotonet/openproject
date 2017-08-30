@@ -28,14 +28,13 @@
 
 import {WorkPackageResourceInterface} from '../../api/api-v3/hal-resources/work-package-resource.service';
 import {WikiTextareaEditField} from '../../wp-edit/field-types/wp-edit-wiki-textarea-field.module';
-import {WorkPackageChangeset} from '../../wp-edit-form/work-package-changeset';
 
 export class WorkPackageCommentField extends WikiTextareaEditField {
   public _value:any;
   public isBusy:boolean = false;
 
   constructor(public workPackage:WorkPackageResourceInterface, protected I18n:op.I18n) {
-    super(new WorkPackageChangeset(workPackage), 'comment', {name: I18n.t('js.label_comment')} as any);
+    super(workPackage, 'comment', {name: I18n.t('js.label_comment')} as any);
 
     this.initializeFieldValue();
   }

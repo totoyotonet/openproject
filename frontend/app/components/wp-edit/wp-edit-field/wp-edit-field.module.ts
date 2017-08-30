@@ -27,31 +27,31 @@
 // ++
 
 import {Field, FieldFactory} from '../../wp-field/wp-field.module';
-import {WorkPackageChangeset} from '../../wp-edit-form/work-package-changeset';
 import {$injectFields} from '../../angular/angular-injector-bridge.functions';
+import {WorkPackageResourceInterface} from '../../api/api-v3/hal-resources/work-package-resource.service';
 
 export class EditField extends Field {
   public template:string;
   protected I18n:op.I18n;
 
-  constructor(public changeset:WorkPackageChangeset,
+  constructor(public workPackage:WorkPackageResourceInterface,
               public name:string,
               public schema:op.FieldSchema) {
-    super(changeset.workPackage, name, schema);
+    super(workPackage, name, schema);
     $injectFields(this, 'I18n');
     this.initialize();
   }
 
   public get inFlight() {
-    return this.changeset.inFlight;
+    return this.workPackage.inFlight;
   }
 
   public get value() {
-    return this.changeset.value(this.name);
+    return this.workPackage[this.name];
   }
 
   public set value(value:any) {
-    this.changeset.setValue(this.name, this.parseValue(value));
+    this.workPackage[this.name] = this.parseValue(value);
   }
 
   public get placeholder() {
@@ -78,13 +78,13 @@ export class EditField extends Field {
 
 export class EditFieldFactory extends FieldFactory {
 
-  public static create(changeset:WorkPackageChangeset,
+  public static create(workPackage:WorkPackageResourceInterface,
                        fieldName:string,
                        schema:op.FieldSchema):EditField {
     let type = this.getType(schema.type);
     let fieldClass = this.classes[type];
 
-    return new fieldClass(changeset, fieldName, schema);
+    return new fieldClass(workPackage, fieldName, schema);
   }
 
   protected static fields:{ [field:string]:string } = {};

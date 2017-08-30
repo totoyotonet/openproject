@@ -33,7 +33,6 @@ import {WorkPackageTimelineTableController} from '../container/wp-timeline-conta
 import {$injectFields} from '../../../angular/angular-injector-bridge.functions';
 import {WorkPackageTimelineCell} from './wp-timeline-cell';
 import {RenderedRow} from '../../../wp-fast-table/builders/primary-render-pass';
-import {WorkPackageChangeset} from '../../../wp-edit-form/work-package-changeset';
 
 export class WorkPackageTimelineCellsRenderer {
   // Injections
@@ -138,8 +137,7 @@ export class WorkPackageTimelineCellsRenderer {
     const wp = this.states.workPackages.get(wpId).value!;
     return {
       viewParams: this.wpTimeline.viewParameters,
-      workPackage: wp,
-      changeset: new WorkPackageChangeset(wp)
+      workPackage: wp
     } as RenderInfo;
   }
 }

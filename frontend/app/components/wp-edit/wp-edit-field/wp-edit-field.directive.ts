@@ -26,7 +26,6 @@
 // See doc/COPYRIGHT.rdoc for more details.
 // ++
 
-import {scopeDestroyed$} from '../../../helpers/angular-rx-utils';
 import {WorkPackageResourceInterface} from '../../api/api-v3/hal-resources/work-package-resource.service';
 import {ContextMenuService} from '../../context-menus/context-menu.service';
 import {WorkPackageCacheService} from '../../work-packages/work-package-cache.service';
@@ -34,7 +33,6 @@ import {WorkPackageNotificationService} from '../wp-notification.service';
 import {opWorkPackagesModule} from '../../../angular-modules';
 import {States} from '../../states.service';
 import {WorkPackageEditForm} from '../../wp-edit-form/work-package-edit-form';
-import {SingleViewEditContext} from '../../wp-edit-form/single-view-edit-context';
 import {
   displayClassName,
   DisplayFieldRenderer,
@@ -43,7 +41,6 @@ import {
 import {WorkPackageEditFieldGroupController} from './wp-edit-field-group.directive';
 import {ClickPositionMapper} from '../../common/set-click-position/set-click-position';
 import {WorkPackageEditFieldHandler} from '../../wp-edit-form/work-package-edit-field-handler';
-import {WorkPackageEditingService} from '../../wp-edit-form/work-package-editing-service';
 import {SelectionHelpers} from '../../../helpers/selection-helpers';
 import {debugLog} from '../../../helpers/debug_output';
 
@@ -66,7 +63,6 @@ export class WorkPackageEditFieldController {
               protected wpNotificationsService:WorkPackageNotificationService,
               protected ConfigurationService:any,
               protected contextMenu:ContextMenuService,
-              protected wpEditing:WorkPackageEditingService,
               protected wpCacheService:WorkPackageCacheService,
               protected ENTER_KEY:any,
               protected I18n:op.I18n) {
@@ -78,7 +74,7 @@ export class WorkPackageEditFieldController {
   }
 
   public render() {
-    const el = this.fieldRenderer.render(this.resource, this.fieldName, this.displayPlaceholder);
+    const el = this.fieldRenderer.render(this.workPackage, this.fieldName, this.displayPlaceholder);
     this.displayContainer[0].innerHTML = '';
     this.displayContainer[0].appendChild(el);
   }
@@ -93,15 +89,9 @@ export class WorkPackageEditFieldController {
     }
   }
 
-  public get resource() {
-    return this.wpEditing
-      .temporaryEditResource(this.workPackageId)
-      .getValueOr(this.wpEditFieldGroup.workPackage);
-  }
-
   public get isEditable() {
-    const fieldSchema = this.resource.schema[this.fieldName] as op.FieldSchema;
-    return this.resource.isEditable && fieldSchema && fieldSchema.writable;
+    const fieldSchema = this.workPackage.schema[this.fieldName] as op.FieldSchema;
+    return this.workPackage.isEditable && fieldSchema && fieldSchema.writable;
   }
 
   public activateIfEditable(event:JQueryEventObject) {

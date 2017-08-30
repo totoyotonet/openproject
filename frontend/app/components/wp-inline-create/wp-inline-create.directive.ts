@@ -26,27 +26,24 @@
 // See doc/COPYRIGHT.rdoc for more details.
 // ++
 
-import {onClickOrEnter} from "../wp-fast-table/handlers/click-or-enter-handler";
-import {opWorkPackagesModule} from "../../angular-modules";
-import {WorkPackageTableColumnsService} from "../wp-fast-table/state/wp-table-columns.service";
+import {onClickOrEnter} from '../wp-fast-table/handlers/click-or-enter-handler';
+import {opWorkPackagesModule} from '../../angular-modules';
+import {WorkPackageTableColumnsService} from '../wp-fast-table/state/wp-table-columns.service';
 import {WorkPackageTableFiltersService} from '../wp-fast-table/state/wp-table-filters.service';
-import {WorkPackageResourceInterface} from "../api/api-v3/hal-resources/work-package-resource.service";
-import {QueryFilterInstanceResource} from '../api/api-v3/hal-resources/query-filter-instance-resource.service';
-import {WorkPackageCreateService} from "../wp-create/wp-create.service";
-import {WorkPackageCacheService} from "../work-packages/work-package-cache.service";
+import {WorkPackageResourceInterface} from '../api/api-v3/hal-resources/work-package-resource.service';
+import {WorkPackageCreateService} from '../wp-create/wp-create.service';
+import {WorkPackageCacheService} from '../work-packages/work-package-cache.service';
 import {
   inlineCreateCancelClassName,
   InlineCreateRowBuilder,
   inlineCreateRowClassName
-} from "./inline-create-row-builder";
-import {scopeDestroyed$, scopedObservable} from "../../helpers/angular-rx-utils";
-import {States} from "../states.service";
-import {WorkPackageEditForm} from "../wp-edit-form/work-package-edit-form";
-import {WorkPackageTable} from "../wp-fast-table/wp-fast-table";
+} from './inline-create-row-builder';
+import {scopeDestroyed$, scopedObservable} from '../../helpers/angular-rx-utils';
+import {States} from '../states.service';
+import {WorkPackageEditForm} from '../wp-edit-form/work-package-edit-form';
+import {WorkPackageTable} from '../wp-fast-table/wp-fast-table';
 import {TimelineRowBuilder} from '../wp-fast-table/builders/timeline/timeline-row-builder';
 import {TableRowEditContext} from '../wp-edit-form/table-row-edit-context';
-import {WorkPackageChangeset} from '../wp-edit-form/work-package-changeset';
-import {WorkPackageEditingService} from '../wp-edit-form/work-package-editing-service';
 import {WorkPackageFilterValues} from '../wp-edit-form/work-package-filter-values';
 
 export class WorkPackageInlineCreateController {
@@ -70,7 +67,6 @@ export class WorkPackageInlineCreateController {
               public FocusHelper:any,
               public states:States,
               public wpCacheService:WorkPackageCacheService,
-              public wpEditing:WorkPackageEditingService,
               public wpCreate:WorkPackageCreateService,
               public wpTableColumns:WorkPackageTableColumnsService,
               private wpTableFilters:WorkPackageTableFiltersService,
@@ -110,7 +106,7 @@ export class WorkPackageInlineCreateController {
 
       if (rowElement.length && this.currentWorkPackage) {
         this.rowBuilder.refreshRow(this.currentWorkPackage,
-          this.workPackageEditForm!.changeset,
+          this.workPackageEditForm,
           rowElement);
       }
     });
@@ -132,23 +128,21 @@ export class WorkPackageInlineCreateController {
   }
 
   public addWorkPackageRow() {
-    this.wpCreate.createNewWorkPackage(this.projectIdentifier).then((changeset:WorkPackageChangeset) => {
-      if (!changeset) {
-        throw "No new work package was created";
+    this.wpCreate.createNewWorkPackage(this.projectIdentifier).then((wp:WorkPackageResourceInterface) => {
+      if (!wp) {
+        throw 'No new work package was created';
       }
 
-      const wp = this.currentWorkPackage = changeset.workPackage;
+      this.currentWorkPackage = wp;
 
       // Apply filter values
-      const filter = new WorkPackageFilterValues(changeset, this.wpTableFilters.current);
+      const filter = new WorkPackageFilterValues(wp, this.wpTableFilters.current);
       filter.applyDefaultsFromFilters().then(() => {
-        this.wpEditing.updateValue('new', changeset);
-        this.wpCacheService.updateWorkPackage(this.currentWorkPackage!);
+        this.wpCacheService.updateWorkPackage(wp);
 
         // Set editing context to table
         const context = new TableRowEditContext(wp.id, this.rowBuilder.classIdentifier(wp));
         this.workPackageEditForm = WorkPackageEditForm.createInContext(context, wp, false);
-        this.workPackageEditForm.changeset.clear();
 
         const row = this.rowBuilder.buildNew(wp, this.workPackageEditForm);
         this.$element.append(row);
@@ -157,7 +151,7 @@ export class WorkPackageInlineCreateController {
           this.workPackageEditForm!.activateMissingFields();
           this.hideRow();
         });
-      })
+      });
     });
   }
 
@@ -203,14 +197,14 @@ function wpInlineCreate() {
     templateUrl: '/components/wp-inline-create/wp-inline-create.directive.html',
 
     scope: {
-      table: "=",
+      table: '=',
       projectIdentifier: '='
     },
 
     bindToController: true,
     controllerAs: '$ctrl',
     controller: WorkPackageInlineCreateController
-  }
+  };
 }
 
 opWorkPackagesModule.directive('wpInlineCreate', wpInlineCreate);
