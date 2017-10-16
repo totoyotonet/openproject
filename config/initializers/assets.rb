@@ -28,5 +28,6 @@ OpenProject::Application.configure do
     timelines_select_boxes.js
     types_checkboxes.js
     work_packages.js
+    editor/openproject-ckeditor.js
   )
 end

@@ -27,10 +27,14 @@
 // ++
 
 var getWebpackMainConfig = require('./webpack-main-config');
+var getWebpackCKEConfig = require('./webpack-ckeditor-config');
 var getWebpackTestConfig = require('./webpack-test-config');
 
 module.exports = function(env) {
-    var configs = [getWebpackMainConfig()];
+    var configs = [
+      getWebpackMainConfig(),
+      getWebpackCKEConfig()
+    ];
 
     if (env && env.testconfig) {
         console.log("Adding test config to build");
