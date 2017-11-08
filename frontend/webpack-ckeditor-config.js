@@ -51,6 +51,21 @@ function getWebpackCKEConfig() {
     module: {
       rules: [
           {
+            test: /\.tsx?$/,
+            include: [
+              path.resolve(__dirname, 'ckeditor', 'plugins'),
+            ],
+            use: [
+              {
+                loader: 'ts-loader',
+                options: {
+                  logLevel: 'info',
+                  configFile: path.resolve(__dirname, 'tsconfig.json')
+                }
+              }
+            ]
+          },
+          {
               // Or /ckeditor5-[^/]+\/theme\/icons\/[^/]+\.svg$/ if you want to limit this loader
               // to CKEditor 5's icons only.
               test: /\.svg$/,

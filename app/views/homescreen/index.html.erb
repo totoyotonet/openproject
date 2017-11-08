@@ -35,7 +35,15 @@ See doc/COPYRIGHT.rdoc for more details.
 </div>
 
 <div name="content" id="editor">
-    <p>Here goes the initial content of the editor.</p>
+  # Markdown example 
+
+  <div class="op-ckeditor-widget--table">
+    Content
+  </div>
+</div>
+
+<div id="markdown" style="display:none">
+  <%= CGI.escapeHTML(File.read '/Users/oliver/Downloads/gistfile1.md') %>
 </div>
 
 <%= render partial: 'announcements/show' %>

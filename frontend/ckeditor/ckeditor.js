@@ -12,6 +12,15 @@ import ImagetoolbarPlugin from '@ckeditor/ckeditor5-image/src/imagetoolbar';
 import LinkPlugin from '@ckeditor/ckeditor5-link/src/link';
 import ListPlugin from '@ckeditor/ckeditor5-list/src/list';
 import ParagraphPlugin from '@ckeditor/ckeditor5-paragraph/src/paragraph';
+import GFMDataProcessor from '@ckeditor/ckeditor5-markdown-gfm/src/gfmdataprocessor';
+
+// Our plugins
+import OpTableWidget from './plugins/op-table/src/op-table';
+
+function Markdown( editor ) {
+  editor.data.processor = new GFMDataProcessor();
+}
+
 
 export default class CKEditor extends ClassicEditorBase {}
 
@@ -19,6 +28,7 @@ window.CKEditor = CKEditor;
 
 CKEditor.build = {
     plugins: [
+        Markdown,
         EssentialsPlugin,
         AutoformatPlugin,
         BoldPlugin,
@@ -31,7 +41,8 @@ CKEditor.build = {
         ImagetoolbarPlugin,
         LinkPlugin,
         ListPlugin,
-        ParagraphPlugin
+        ParagraphPlugin,
+        OpTableWidget
     ],
     config: {
         toolbar: [

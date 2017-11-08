@@ -243,6 +243,14 @@
         "@ckeditor/ckeditor5-utils": "1.0.0-alpha.1"
       }
     },
+    "@ckeditor/ckeditor5-markdown-gfm": {
+      "version": "1.0.0-alpha.1",
+      "resolved": "https://registry.npmjs.org/@ckeditor/ckeditor5-markdown-gfm/-/ckeditor5-markdown-gfm-1.0.0-alpha.1.tgz",
+      "integrity": "sha1-EgbB0SLXLxRgGhc4iHicvi0fNt8=",
+      "requires": {
+        "@ckeditor/ckeditor5-engine": "1.0.0-alpha.1"
+      }
+    },
     "@ckeditor/ckeditor5-paragraph": {
       "version": "1.0.0-alpha.1",
       "resolved": "https://registry.npmjs.org/@ckeditor/ckeditor5-paragraph/-/ckeditor5-paragraph-1.0.0-alpha.1.tgz",
