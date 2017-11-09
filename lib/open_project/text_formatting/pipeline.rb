@@ -1,4 +1,5 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is a project management system.
 # Copyright (C) 2012-2017 the OpenProject Foundation (OPF)
@@ -27,20 +28,45 @@
 # See doc/COPYRIGHT.rdoc for more details.
 #++
 
-module Redmine
-  module WikiFormatting
-    module NullFormatter
-      module Helper
-        def wikitoolbar_for(_field_id)
-        end
+module OpenProject::TextFormatting
+  class Pipeline
+    attr_reader :formatter,
+                :context,
+                :pipeline
 
-        def heads_for_wiki_formatter
-        end
+    def initialize(formatter, context:)
+      @formatter = formatter
+      @context = context
 
-        def initial_page_content(page)
-          page.title.to_s
+      @pipeline = HTML::Pipeline.new(located_filters, context)
+    end
+
+    def to_html(text, call_context = {})
+      pipeline.to_html text, call_context
+    end
+
+    def to_document(text, call_context = {})
+      pipeline.to_document text, call_context
+    end
+
+    def filters
+      [
+        formatter,
+        :sanitization
+      ]
+    end
+
+    protected
+
+    def located_filters
+      filters.map do |f|
+        if [Symbol, String].include? f.class
+          OpenProject::TextFormatting::Filters.const_get("#{f}_filter".classify)
+        else
+          f
         end
       end
     end
   end
 end
+
