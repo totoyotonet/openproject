@@ -1,4 +1,5 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is a project management system.
 # Copyright (C) 2012-2017 the OpenProject Foundation (OPF)
@@ -27,41 +28,56 @@
 # See doc/COPYRIGHT.rdoc for more details.
 #++
 
-module OpenProject
-  module TextFormatting
-    include ::OpenProject::TextFormatting::Truncation
+module OpenProject::TextFormatting::Matchers
+  module LinkHandlers
+    class Base
+      include ::OpenProject::TextFormatting::Truncation
+      # used for the work package quick links
+      include WorkPackagesHelper
+      # Used for escaping helper 'h()'
+      include ERB::Util
+      # Rails helper
+      include ActionView::Helpers::TagHelper
+      include ActionView::Helpers::UrlHelper
+      include ActionView::Helpers::TextHelper
+      # For route path helpers
+      include OpenProject::ObjectLinking
+      include OpenProject::StaticRouting::UrlHelpers
 
-    # Formats text according to system settings.
-    # 2 ways to call this method:
-    # * with a String: format_text(text, options)
-    # * with an object and one of its attribute: format_text(issue, :description, options)
-    def format_text(*args)
+      attr_reader :matcher, :context
 
-      # Forward to the legacy text formatting for textile syntax
-      if Setting.text_formatting == 'textile'
-        return Formatters::Textile::LegacyTextFormatting.format_text(*args)
+      def initialize(matcher, context:)
+        @matcher = matcher
+        @context = context
       end
 
-      options = args.last.is_a?(Hash) ? args.pop : {}
-      case args.size
-      when 1
-        object = options[:object]
-        text = args.shift
-      when 2
-        object = args.shift
-        attr = args.shift
-        text = object.send(attr).to_s
-      else
-        raise ArgumentError, 'invalid arguments to format_text'
+      ##
+      # Test whether we should try to resolve the given link
+      def applicable?
+        raise NotImplementedError
       end
-      return '' if text.blank?
 
-      project = options.delete(:project) { @project || object.try(:project) }
-      Renderer.format_text text,
-                           options.merge(
-                             object: object,
-                             project: project
-                           )
+      ##
+      # Replace the given link with the resource link, depending on the context
+      # and matchers.
+      # If nil is returned, the link remains as-is.
+      def call
+        raise NotImplementedError
+      end
+
+      def oid
+        id = matcher.identifier
+
+        unless id.nil?
+          id.to_i
+        end
+      end
+
+      def project
+        matcher.project
+      end
+
+      def controller; end
     end
   end
 end

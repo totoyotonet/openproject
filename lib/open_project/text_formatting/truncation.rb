@@ -29,39 +29,24 @@
 
 module OpenProject
   module TextFormatting
-    include ::OpenProject::TextFormatting::Truncation
+    module Truncation
+      # Used for truncation
+      include ActionView::Helpers::TextHelper
 
-    # Formats text according to system settings.
-    # 2 ways to call this method:
-    # * with a String: format_text(text, options)
-    # * with an object and one of its attribute: format_text(issue, :description, options)
-    def format_text(*args)
-
-      # Forward to the legacy text formatting for textile syntax
-      if Setting.text_formatting == 'textile'
-        return Formatters::Textile::LegacyTextFormatting.format_text(*args)
+      # Truncates and returns the string as a single line
+      def truncate_single_line(string, *args)
+        truncate(string.to_s, *args).gsub(%r{[\r\n]+}m, ' ').html_safe
       end
 
-      options = args.last.is_a?(Hash) ? args.pop : {}
-      case args.size
-      when 1
-        object = options[:object]
-        text = args.shift
-      when 2
-        object = args.shift
-        attr = args.shift
-        text = object.send(attr).to_s
-      else
-        raise ArgumentError, 'invalid arguments to format_text'
+      # Truncates at line break after 250 characters or options[:length]
+      def truncate_lines(string, options = {})
+        length = options[:length] || 250
+        if string.to_s =~ /\A(.{#{length}}.*?)$/m
+          "#{$1}..."
+        else
+          string
+        end
       end
-      return '' if text.blank?
-
-      project = options.delete(:project) { @project || object.try(:project) }
-      Renderer.format_text text,
-                           options.merge(
-                             object: object,
-                             project: project
-                           )
     end
   end
 end

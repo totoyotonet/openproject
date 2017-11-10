@@ -1,4 +1,5 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is a project management system.
 # Copyright (C) 2012-2017 the OpenProject Foundation (OPF)
@@ -27,41 +28,28 @@
 # See doc/COPYRIGHT.rdoc for more details.
 #++
 
-module OpenProject
-  module TextFormatting
-    include ::OpenProject::TextFormatting::Truncation
+module OpenProject::TextFormatting
+  module Filters
+    class PatternMatcherFilter < HTML::Pipeline::Filter
 
-    # Formats text according to system settings.
-    # 2 ways to call this method:
-    # * with a String: format_text(text, options)
-    # * with an object and one of its attribute: format_text(issue, :description, options)
-    def format_text(*args)
-
-      # Forward to the legacy text formatting for textile syntax
-      if Setting.text_formatting == 'textile'
-        return Formatters::Textile::LegacyTextFormatting.format_text(*args)
+      def self.matchers
+        [
+          OpenProject::TextFormatting::Matchers::ResourceLinksMatcher
+        ]
       end
 
-      options = args.last.is_a?(Hash) ? args.pop : {}
-      case args.size
-      when 1
-        object = options[:object]
-        text = args.shift
-      when 2
-        object = args.shift
-        attr = args.shift
-        text = object.send(attr).to_s
-      else
-        raise ArgumentError, 'invalid arguments to format_text'
-      end
-      return '' if text.blank?
+      def call
+        $stderr.puts "REGEX"
+        $stderr.puts(Benchmark.measure do
+          doc.search('.//text()').each do |node|
+            self.class.matchers.each do |matcher|
+              matcher.call(node, doc: doc, context: context)
+            end
+          end
+        end)
 
-      project = options.delete(:project) { @project || object.try(:project) }
-      Renderer.format_text text,
-                           options.merge(
-                             object: object,
-                             project: project
-                           )
+        doc
+      end
     end
   end
 end

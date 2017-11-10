@@ -1,4 +1,5 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is a project management system.
 # Copyright (C) 2012-2017 the OpenProject Foundation (OPF)
@@ -27,41 +28,36 @@
 # See doc/COPYRIGHT.rdoc for more details.
 #++
 
-module OpenProject
-  module TextFormatting
-    include ::OpenProject::TextFormatting::Truncation
+module OpenProject::TextFormatting::Matchers
+  module LinkHandlers
+    class Revisions < Base
 
-    # Formats text according to system settings.
-    # 2 ways to call this method:
-    # * with a String: format_text(text, options)
-    # * with an object and one of its attribute: format_text(issue, :description, options)
-    def format_text(*args)
-
-      # Forward to the legacy text formatting for textile syntax
-      if Setting.text_formatting == 'textile'
-        return Formatters::Textile::LegacyTextFormatting.format_text(*args)
+      ##
+      # Match work package links.
+      # Condition: Separator is #|##|###
+      # Condition: Prefix is nil
+      def applicable?
+        matcher.prefix.nil? && matcher.sep == 'r'
       end
 
-      options = args.last.is_a?(Hash) ? args.pop : {}
-      case args.size
-      when 1
-        object = options[:object]
-        text = args.shift
-      when 2
-        object = args.shift
-        attr = args.shift
-        text = object.send(attr).to_s
-      else
-        raise ArgumentError, 'invalid arguments to format_text'
-      end
-      return '' if text.blank?
+      #
+      # Examples:
+      #
+      # #1234, ##1234, ###1234
+      def call
 
-      project = options.delete(:project) { @project || object.try(:project) }
-      Renderer.format_text text,
-                           options.merge(
-                             object: object,
-                             project: project
-                           )
+        # don't handle link unless repository exists
+        return nil unless project && project.repository
+        changeset = changeset.visible.find_by(repository_id: project.repository.id, revision: identifier)
+
+        # don't handle link unless changeset can be seen
+        if changeset
+          link_to(h("#{project_prefix}r#{identifier}"),
+                  { only_path: context[:only_path], controller: '/repositories', action: 'revision', project_id: project, rev: changeset.revision },
+                  class: 'changeset',
+                  title: truncate_single_line(changeset.comments, length: 100))
+        end
+      end
     end
   end
 end
