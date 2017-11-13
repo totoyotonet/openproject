@@ -27,14 +27,14 @@
 // ++
 
 import {EditField} from '../wp-edit-field/wp-edit-field.module';
-import {WorkPackageResource} from '../../api/api-v3/hal-resources/work-package-resource.service';
-import {$injectFields, $injectNow} from '../../angular/angular-injector-bridge.functions';
+import {$injectFields} from '../../angular/angular-injector-bridge.functions';
 import {TextileService} from './../../common/textile/textile-service';
+import {WorkPackageEditFieldHandler} from 'core-components/wp-edit-form/work-package-edit-field-handler';
 
 export class WikiTextareaEditField extends EditField {
 
   // Template
-  public template:string = '/components/wp-edit/field-types/wp-edit-wiki-textarea-field.directive.html';
+  public template:string = '/components/wp-edit/field-types/wp-edit-markdown-field.directive.html';
 
   // Dependencies
   protected $sce:ng.ISCEService;
@@ -49,6 +49,9 @@ export class WikiTextareaEditField extends EditField {
   public previewHtml:string;
   public text:Object;
 
+  // CKEditor instance
+  public ckeditor:any;
+
   protected initialize() {
     $injectFields(this, '$sce', '$http', 'textileService', '$timeout', 'I18n');
 
@@ -59,9 +62,32 @@ export class WikiTextareaEditField extends EditField {
     };
   }
 
+  public $onInit(fieldHandler:WorkPackageEditFieldHandler, container:JQuery) {
+    (window as any).BalloonEditor
+      .create(container.find('.op-ckeditor-wrapper')[0])
+      .then((editor:any) => {
+        this.ckeditor = editor;
+        if (this.rawValue) {
+          this.ckeditor.setData(this.rawValue);
+        }
+      })
+      .catch((error:any) => {
+        console.error(error);
+      });
+  }
+
+  public onSubmit() {
+    if (this.ckeditor) {
+      this.rawValue = this.ckeditor.getData();
+    }
+  }
+
   public get rawValue() {
-    const formatted = this.value;
-    return _.get(formatted, 'raw', '');
+    if (this.value && this.value.raw) {
+      return this.value.raw;
+    } else {
+      return '';
+    }
   }
 
   public set rawValue(val:string) {

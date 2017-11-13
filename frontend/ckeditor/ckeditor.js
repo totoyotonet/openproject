@@ -1,4 +1,6 @@
-import ClassicEditorBase from '@ckeditor/ckeditor5-editor-balloon/src/ballooneditor';
+import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
+import BalloonEditor from '@ckeditor/ckeditor5-editor-balloon/src/ballooneditor';
+
 import EssentialsPlugin from '@ckeditor/ckeditor5-essentials/src/essentials';
 import AutoformatPlugin from '@ckeditor/ckeditor5-autoformat/src/autoformat';
 import BoldPlugin from '@ckeditor/ckeditor5-basic-styles/src/bold';
@@ -22,47 +24,52 @@ function Markdown( editor ) {
 }
 
 
-export default class CKEditor extends ClassicEditorBase {}
+export class OPClassicEditor extends ClassicEditor {}
+export class OPBalloonEditor extends BalloonEditor {}
 
-window.CKEditor = CKEditor;
+window.BalloonEditor = OPBalloonEditor;
+window.ClassicEditor = OPClassicEditor;
 
-CKEditor.build = {
-    plugins: [
-        Markdown,
-        EssentialsPlugin,
-        AutoformatPlugin,
-        BoldPlugin,
-        ItalicPlugin,
-        BlockquotePlugin,
-        HeadingPlugin,
-        ImagePlugin,
-        ImagecaptionPlugin,
-        ImagestylePlugin,
-        ImagetoolbarPlugin,
-        LinkPlugin,
-        ListPlugin,
-        ParagraphPlugin,
-        OpTableWidget
+const config = {
+  plugins: [
+    Markdown,
+    EssentialsPlugin,
+    AutoformatPlugin,
+    BoldPlugin,
+    ItalicPlugin,
+    BlockquotePlugin,
+    HeadingPlugin,
+    ImagePlugin,
+    ImagecaptionPlugin,
+    ImagestylePlugin,
+    ImagetoolbarPlugin,
+    LinkPlugin,
+    ListPlugin,
+    ParagraphPlugin,
+    OpTableWidget
+  ],
+  config: {
+    toolbar: [
+      'headings',
+      'bold',
+      'italic',
+      'link',
+      'bulletedList',
+      'numberedList',
+      'blockQuote',
+      'undo',
+      'redo'
     ],
-    config: {
-        toolbar: [
-            'headings',
-            'bold',
-            'italic',
-            'link',
-            'bulletedList',
-            'numberedList',
-            'blockQuote',
-            'undo',
-            'redo'
-        ],
-        image: {
-            toolbar: [
-                'imageStyleFull',
-                'imageStyleSide',
-                '|',
-                'imageTextAlternative'
-            ]
-        }
+    image: {
+      toolbar: [
+        'imageStyleFull',
+        'imageStyleSide',
+        '|',
+        'imageTextAlternative'
+      ]
     }
+  }
 };
+
+OPClassicEditor.build = config;
+OPBalloonEditor.build = config;

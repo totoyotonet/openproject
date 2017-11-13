@@ -31,17 +31,22 @@ module OpenProject::TextFormatting::Formatters
   module Markdown
     module Helper
       def wikitoolbar_for(field_id)
-
         javascript_tag(<<-EOF)
-            // Toolbar for markdown. Here be dragons
+          jQuery(function() {
+            CKEditor
+              .create(document.getElementById('#{field_id}'))
+              .then( editor => {
+                  window.editorInstance = editor ; console.log( editor );
+              } )
+              .catch( error => {
+                  console.error( error );
+              } );
+          });
         EOF
       end
 
       def initial_page_content(_page)
         "h1. #{@page.title}"
-      end
-
-      def heads_for_wiki_formatter
       end
     end
   end

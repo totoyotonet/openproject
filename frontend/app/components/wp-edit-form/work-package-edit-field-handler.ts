@@ -98,6 +98,7 @@ export class WorkPackageEditFieldHandler {
    */
   public handleUserSubmit() {
     if (!this.form.editMode) {
+      this.field.onSubmit();
       this.form.submit();
     }
   }

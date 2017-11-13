@@ -33,6 +33,7 @@
     "@ckeditor/ckeditor5-build-balloon": "^1.0.0-alpha.1",
     "@ckeditor/ckeditor5-dev-webpack-plugin": "^2.0.19",
     "@ckeditor/ckeditor5-editor-balloon": "^1.0.0-alpha.1",
+    "@ckeditor/ckeditor5-editor-classic": "^1.0.0-alpha.1",
     "@ckeditor/ckeditor5-essentials": "^1.0.0-alpha.1",
     "@ckeditor/ckeditor5-heading": "^1.0.0-alpha.1",
     "@ckeditor/ckeditor5-image": "^1.0.0-alpha.1",

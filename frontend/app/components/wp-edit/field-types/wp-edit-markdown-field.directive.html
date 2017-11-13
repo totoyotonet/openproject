@@ -1,0 +1,11 @@
+<div class="textarea-wrapper" ng-class="{'-preview': vm.field.isPreview}">
+  <div class="op-ckeditor-wrapper">
+  </div>
+  <wp-edit-field-controls ng-show="!vm.inEditMode"
+                          field-controller="vm"
+                          on-save="vm.handleUserSubmit()"
+                          on-cancel="vm.handleUserCancel()"
+                          save-title="{{ vm.field.text.save }}"
+                          cancel-title="{{ vm.field.text.cancel }}">
+  </wp-edit-field-controls>
+</div>
