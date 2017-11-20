@@ -31,18 +31,18 @@ module OpenProject::TextFormatting::Formatters
   module Markdown
     module Helper
       def wikitoolbar_for(field_id)
-        javascript_tag(<<-EOF)
-          jQuery(function() {
-            CKEditor
-              .create(document.getElementById('#{field_id}'))
-              .then( editor => {
-                  window.editorInstance = editor ; console.log( editor );
-              } )
-              .catch( error => {
-                  console.error( error );
-              } );
-          });
-        EOF
+        # javascript_tag(<<-EOF)
+        #   jQuery(function() {
+        #     ClassicEditor
+        #       .create(document.getElementById('#{field_id}'))
+        #       .then( editor => {
+        #           window.editorInstance = editor ; console.log( editor );
+        #       } )
+        #       .catch( error => {
+        #           console.error( error );
+        #       } );
+        #   });
+        # EOF
       end
 
       def initial_page_content(_page)
