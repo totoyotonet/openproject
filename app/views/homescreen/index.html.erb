@@ -34,18 +34,6 @@ See doc/COPYRIGHT.rdoc for more details.
   </h2>
 </div>
 
-<div name="content" id="editor">
-  # Markdown example 
-
-  <div class="op-ckeditor-widget--table">
-    Content
-  </div>
-</div>
-
-<div id="markdown" style="display:none">
-  <%= CGI.escapeHTML(File.read '/Users/oliver/Downloads/gistfile1.md') %>
-</div>
-
 <%= render partial: 'announcements/show' %>
 
 <% if @homescreen[:blocks].any? %>
