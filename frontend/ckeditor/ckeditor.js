@@ -16,8 +16,7 @@ import ListPlugin from '@ckeditor/ckeditor5-list/src/list';
 import ParagraphPlugin from '@ckeditor/ckeditor5-paragraph/src/paragraph';
 import GFMDataProcessor from '@ckeditor/ckeditor5-markdown-gfm/src/gfmdataprocessor';
 
-// Our plugins
-import OpTableWidget from './plugins/op-table/src/op-table';
+// import OpTableWidget from './plugins/op-table/src/op-table';
 
 function Markdown( editor ) {
   editor.data.processor = new GFMDataProcessor();
@@ -45,8 +44,7 @@ const config = {
     ImagetoolbarPlugin,
     LinkPlugin,
     ListPlugin,
-    ParagraphPlugin,
-    OpTableWidget
+    ParagraphPlugin
   ],
   config: {
     toolbar: [
