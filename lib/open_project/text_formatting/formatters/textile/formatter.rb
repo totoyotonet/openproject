@@ -37,9 +37,11 @@ module OpenProject::TextFormatting::Formatters
       include Redmine::I18n
       # used for the work package quick links
       include WorkPackagesHelper
+      include ApplicationHelper
       # Used for escaping helper 'h()'
       include ERB::Util
       # Rails helper
+      include ActionView::Context
       include ActionView::Helpers::TagHelper
       include ActionView::Helpers::UrlHelper
       include ActionView::Helpers::TextHelper
