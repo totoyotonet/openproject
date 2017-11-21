@@ -29,18 +29,14 @@
 
 module OpenProject::TextFormatting::Formatters
   module Plain
-    class Formatter
+    class Formatter < OpenProject::TextFormatting::Formatters::Base
       include ERB::Util
       include ActionView::Helpers::TagHelper
       include ActionView::Helpers::TextHelper
       include ActionView::Helpers::UrlHelper
 
-      def initialize(text)
-        @text = text
-      end
-
-      def to_html(*_args)
-        simple_format(auto_link(CGI::escapeHTML(@text)))
+      def to_html(text)
+        simple_format(auto_link(CGI::escapeHTML(text)))
       end
     end
   end
