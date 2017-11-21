@@ -27,7 +27,7 @@
 # See doc/COPYRIGHT.rdoc for more details.
 #++
 
-require_relative '../../../../legacy_spec_helper'
+require 'spec_helper'
 
 describe OpenProject::TextFormatting::Formatters::Plain::Formatter do
   subject { described_class.new({}) }

@@ -39,5 +39,23 @@ module OpenProject::TextFormatting::Formatters
     def to_html(text)
       raise NotImplementedError
     end
+
+    protected
+
+    def filters
+      []
+    end
+
+    protected
+
+    def located_filters
+      filters.map do |f|
+        if [Symbol, String].include? f.class
+          OpenProject::TextFormatting::Filters.const_get("#{f}_filter".classify)
+        else
+          f
+        end
+      end
+    end
   end
 end

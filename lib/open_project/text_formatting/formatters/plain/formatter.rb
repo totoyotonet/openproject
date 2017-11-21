@@ -30,13 +30,24 @@
 module OpenProject::TextFormatting::Formatters
   module Plain
     class Formatter < OpenProject::TextFormatting::Formatters::Base
-      include ERB::Util
-      include ActionView::Helpers::TagHelper
-      include ActionView::Helpers::TextHelper
-      include ActionView::Helpers::UrlHelper
+      attr_reader :context,
+                  :pipeline
+
+      def initialize(context)
+        @context = context
+        @pipeline = HTML::Pipeline.new(located_filters, context)
+      end
 
       def to_html(text)
-        simple_format(auto_link(CGI::escapeHTML(text)))
+        pipeline.to_html(text, context).html_safe
+      end
+
+      def to_document(text)
+        pipeline.to_document text, context
+      end
+
+      def filters
+        %i(plain pattern_matcher)
       end
     end
   end
