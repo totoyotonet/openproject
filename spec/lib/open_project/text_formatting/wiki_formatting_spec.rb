@@ -26,17 +26,25 @@
 #
 # See doc/COPYRIGHT.rdoc for more details.
 #++
-require 'legacy_spec_helper'
+require 'spec_helper'
 
-describe Redmine::WikiFormatting do
-  it 'should textile formatter' do
-    assert_equal Redmine::WikiFormatting::Textile::Formatter, Redmine::WikiFormatting.formatter_for('textile')
-    assert_equal Redmine::WikiFormatting::Textile::Helper, Redmine::WikiFormatting.helper_for('textile')
+describe OpenProject::WikiFormatting do
+  it 'should markdown formatter' do
+    expect(OpenProject::TextFormatting::Formatters::Markdown::Formatter).to eq(OpenProject::TextFormatting::Formatters.formatter_for('markdown'))
+    expect(OpenProject::TextFormatting::Formatters::Markdown::Helper).to eq(OpenProject::TextFormatting::Formatters.helper_for('markdown'))
   end
 
-  it 'should null formatter' do
-    assert_equal Redmine::WikiFormatting::NullFormatter::Formatter, Redmine::WikiFormatting.formatter_for('')
-    assert_equal Redmine::WikiFormatting::NullFormatter::Helper, Redmine::WikiFormatting.helper_for('')
+  it 'should textile formatter' do
+    expect(OpenProject::TextFormatting::Formatters::Textile::Formatter).to eq(OpenProject::TextFormatting::Formatters.formatter_for('textile'))
+    expect(OpenProject::TextFormatting::Formatters::Textile::Helper).to eq(OpenProject::TextFormatting::Formatters.helper_for('textile'))
+  end
+
+  it 'should plain formatter' do
+    expect(OpenProject::TextFormatting::Formatters::Plain::Formatter).to eq(OpenProject::TextFormatting::Formatters.formatter_for('plain'))
+    expect(OpenProject::TextFormatting::Formatters::Plain::Helper).to eq(OpenProject::TextFormatting::Formatters.helper_for('plain'))
+
+    expect(OpenProject::TextFormatting::Formatters::Plain::Formatter).to eq(OpenProject::TextFormatting::Formatters.formatter_for('doesnotexist'))
+    expect(OpenProject::TextFormatting::Formatters::Plain::Helper).to eq(OpenProject::TextFormatting::Formatters.helper_for('doesnotexist'))
   end
 
   it 'should link urls and email addresses' do
@@ -46,10 +54,10 @@ and an email address foo@example.net
 DIFF
 
     expected = <<-EXPECTED
-<p>This is a sample *text* with a link: <a href="http://www.redmine.org">http://www.redmine.org</a><br />
+<p>This is a sample *text* with a link: <a href="http://www.redmine.org">http://www.redmine.org</a><br>
 and an email address <a href="mailto:foo@example.net">foo@example.net</a></p>
 EXPECTED
 
-    assert_equal expected.gsub(%r{[\r\n\t]}, ''), Redmine::WikiFormatting::NullFormatter::Formatter.new(raw).to_html.gsub(%r{[\r\n\t]}, '')
+    assert_equal expected.gsub(%r{[\r\n\t]}, ''),OpenProject::TextFormatting::Formatters::Plain::Formatter.new({}).to_html(raw).gsub(%r{[\r\n\t]}, '')
   end
 end
