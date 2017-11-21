@@ -27,7 +27,9 @@
 // ++
 
 var mainConfig = require('./webpack-main-config');
+var getWebpackCKEConfig = require('./webpack-ckeditor-config');
 
 module.exports = [
-  mainConfig()
+  mainConfig(),
+  getWebpackCKEConfig()
 ];
