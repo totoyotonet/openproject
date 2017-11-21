@@ -3,6 +3,13 @@ FROM ruby:2.4
 ENV NODE_VERSION="7.7.2"
 ENV BUNDLER_VERSION="1.11.2"
 
+# Install cmake for gems
+# (commonmarker)
+USER root
+RUN apt-get update -qq && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y \
+		cmake \
+
 # install node + npm
 RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar xzf - -C /usr/local --strip-components=1
 
