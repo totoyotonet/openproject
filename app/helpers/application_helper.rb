@@ -35,6 +35,7 @@ module ApplicationHelper
   include OpenProject::TextFormatting
   include OpenProject::ObjectLinking
   include I18n
+  include ERB::Util
   include Redmine::I18n
   include HookHelper
   include IconsHelper
