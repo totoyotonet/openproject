@@ -131,10 +131,11 @@
     "webpack": "^3.5.6"
   },
   "scripts": {
-    "postinstall": "./node_modules/.bin/webpack --colors --progress  --debug --config webpack-vendors-config.js",
+    "postinstall": "npm rebuild node-sass && npm run webpack-vendors",
     "pretest": "npm run webpack-with-test",
     "test": "npm run karma",
     "karma": "./scripts/karma-runner.js",
+    "webpack-vendors": "./node_modules/.bin/webpack --colors --progress  --debug --config webpack-vendors-config.js",
     "webpack": "./node_modules/.bin/webpack --colors --progress",
     "webpack-with-test": "./node_modules/.bin/webpack --colors --progress --env.testconfig 1",
     "webpack-watch": "RAILS_ENV=development npm run webpack -- --watch --cache",
