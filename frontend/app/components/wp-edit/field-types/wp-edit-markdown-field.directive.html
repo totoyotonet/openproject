@@ -1,7 +1,8 @@
 <div class="textarea-wrapper">
   <div class="op-ckeditor-wrapper op-ckeditor-element">
   </div>
-    <wp-edit-field-controls field-controller="vm"
+    <wp-edit-field-controls ng-show="!vm.inEditMode"
+                            field-controller="vm"
                             on-save="vm.handleUserSubmit()"
                             on-cancel="vm.handleUserCancel()"
                             save-title="{{ vm.field.text.save }}"

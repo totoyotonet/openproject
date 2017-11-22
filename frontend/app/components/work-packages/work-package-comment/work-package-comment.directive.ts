@@ -69,7 +69,7 @@ export class CommentFieldDirectiveController {
 
     $scope.$on('workPackage.comment.quoteThis', (evt, quote) => {
       this.resetField(quote);
-      this.editing = true;
+      this.activate();
       this.$element.find('.work-packages--activity--add-comment')[0].scrollIntoView();
     });
   }
@@ -92,7 +92,6 @@ export class CommentFieldDirectiveController {
 
   public activate(withText?:string) {
     this._forceFocus = true;
-    this.resetField(withText);
     this.editing = true;
 
     this.$timeout(() => {
@@ -106,11 +105,11 @@ export class CommentFieldDirectiveController {
   }
 
   public handleUserSubmit() {
-    if (this.field.isEmpty()) {
+    this.field.onSubmit();
+    if (!this.field.rawValue) {
       return;
     }
 
-    this.field.onSubmit();
     this.field.isBusy = true;
     let indicator = this.loadingIndicator.wpDetails;
     indicator.promise = this.wpActivityService.createComment(this.workPackage, this.field.value)
