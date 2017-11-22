@@ -95,7 +95,9 @@ export class CommentFieldDirectiveController {
     this.resetField(withText);
     this.editing = true;
 
-    this.$timeout(() => this.$element.find('.wp-inline-edit--field').focus());
+    this.$timeout(() => {
+      this.field.$onInit(this.$element);
+    });
   }
 
   public resetField(withText?:string) {
@@ -108,6 +110,7 @@ export class CommentFieldDirectiveController {
       return;
     }
 
+    this.field.onSubmit();
     this.field.isBusy = true;
     let indicator = this.loadingIndicator.wpDetails;
     indicator.promise = this.wpActivityService.createComment(this.workPackage, this.field.value)

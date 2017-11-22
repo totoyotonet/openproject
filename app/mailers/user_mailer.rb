@@ -215,7 +215,6 @@ class UserMailer < BaseMailer
 
   def wiki_content_updated(user, wiki_content, author)
     @wiki_content  = wiki_content
-    binding.pry
     @wiki_diff_url = url_for(controller: '/wiki',
                              action:     :diff,
                              project_id: wiki_content.project,

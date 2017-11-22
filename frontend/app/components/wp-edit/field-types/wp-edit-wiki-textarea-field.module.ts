@@ -72,7 +72,7 @@ export class WikiTextareaEditField extends EditField {
     return !!this.ckeditor;
   }
 
-  public $onInit(fieldHandler:WorkPackageEditFieldHandler, container:JQuery) {
+  public $onInit(container:JQuery) {
     const element = container.find('.op-ckeditor-element');
     (window as any).BalloonEditor
       .create(element[0])
@@ -81,6 +81,8 @@ export class WikiTextareaEditField extends EditField {
         if (this.rawValue) {
           this.reset();
         }
+
+        element.focus();
       })
       .catch((error:any) => {
         console.error(error);
@@ -108,7 +110,11 @@ export class WikiTextareaEditField extends EditField {
   }
 
   public isEmpty():boolean {
-    return !(this.value && this.value.raw);
+    if (this.isInitialized) {
+      return this.ckeditor.getData() === '';
+    } else {
+      return !(this.value && this.value.raw);
+    }
   }
 
   public submitUnlessInPreview(form:any) {

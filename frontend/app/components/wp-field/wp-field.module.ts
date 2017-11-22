@@ -33,7 +33,7 @@ export class Field {
   public static type:string;
   public static $injector:ng.auto.IInjectorService;
 
-  public $onInit(fieldHandler:WorkPackageEditFieldHandler, container:JQuery) {}
+  public $onInit(container:JQuery) {}
 
   public get displayName():string {
     return this.schema.name || this.name;

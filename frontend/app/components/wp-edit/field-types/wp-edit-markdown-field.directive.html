@@ -1,20 +1,11 @@
 <div class="textarea-wrapper">
   <div class="op-ckeditor-wrapper op-ckeditor-element">
   </div>
-  <div class="inplace-edit--dashboard">
-    <div class="inplace-edit--controls">
-      <accessible-by-keyboard execute="vm.handleUserSubmit()"
-                              ng-disabled="vm.field.required && vm.field.isEmpty()"
-                              is-disabled="vm.field.required && vm.field.isEmpty()"
-                              link-title="{{ vm.saveTitle }}"
-                              class="inplace-edit--control inplace-edit--control--save">
-        <op-icon icon-classes="icon-checkmark" icon-title="{{ ::vm.saveTitle }}"></op-icon>
-      </accessible-by-keyboard>
-      <accessible-by-keyboard execute="vm.handleUserCancel()"
-                              link-title="{{ vm.cancelTitle }}"
-                              class="inplace-edit--control inplace-edit--control--cancel">
-        <op-icon icon-classes="icon-close" icon-title="{{ vm.cancelTitle }}"></op-icon>
-      </accessible-by-keyboard>
-  </div>
+    <wp-edit-field-controls field-controller="vm"
+                            on-save="vm.handleUserSubmit()"
+                            on-cancel="vm.handleUserCancel()"
+                            save-title="{{ vm.field.text.save }}"
+                            cancel-title="{{ vm.field.text.cancel }}">
+    </wp-edit-field-controls>
   </div>
 </div>
