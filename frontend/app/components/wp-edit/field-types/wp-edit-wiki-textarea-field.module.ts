@@ -62,13 +62,24 @@ export class WikiTextareaEditField extends EditField {
     };
   }
 
+  public onSubmit() {
+    if (this.ckeditor) {
+      this.rawValue = this.ckeditor.getData();
+    }
+  }
+
+  public get isInitialized() {
+    return !!this.ckeditor;
+  }
+
   public $onInit(fieldHandler:WorkPackageEditFieldHandler, container:JQuery) {
+    const element = container.find('.op-ckeditor-element');
     (window as any).BalloonEditor
-      .create(container.find('.op-ckeditor-wrapper')[0])
+      .create(element[0])
       .then((editor:any) => {
         this.ckeditor = editor;
         if (this.rawValue) {
-          this.ckeditor.setData(this.rawValue);
+          this.reset();
         }
       })
       .catch((error:any) => {
@@ -76,10 +87,8 @@ export class WikiTextareaEditField extends EditField {
       });
   }
 
-  public onSubmit() {
-    if (this.ckeditor) {
-      this.rawValue = this.ckeditor.getData();
-    }
+  public reset() {
+    this.ckeditor.setData(this.rawValue);
   }
 
   public get rawValue() {

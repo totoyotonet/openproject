@@ -80,10 +80,6 @@ export class WorkPackageEditorFieldController {
         if (this.rawValue) {
           this.reset();
         }
-
-        element.on('click', () => {
-          this.$timeout(() => this.changed = true);
-        });
       })
       .catch((error:any) => {
         console.error(error);
@@ -107,10 +103,6 @@ export class WorkPackageEditorFieldController {
       this.changed = false;
       this.inFlight = false;
     });
-  }
-
-  public get isChanged() {
-    return this.isInitialized && this.changed;
   }
 
   public get isInitialized() {
