@@ -180,7 +180,8 @@ module OpenProject::TextFormatting::Formatters
           href = $1
           relative_url = $2 || $3
           next m unless href.present?
-          if defined?(request) && request.present?
+          request = options[:request]
+          if request.present?
             # we have a request!
             protocol = request.protocol
             host_with_port = request.host_with_port
