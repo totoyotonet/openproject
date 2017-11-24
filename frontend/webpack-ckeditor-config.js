@@ -45,7 +45,7 @@ var bundle_output = path.resolve(output_root, 'editor')
 function getWebpackCKEConfig() {
   config = {
     entry: {
-      ckeditor: [path.resolve(__dirname, 'ckeditor', 'ckeditor.js')]
+      ckeditor: [path.resolve(__dirname, 'ckeditor', 'ckeditor.ts')]
     },
 
     module: {
@@ -53,14 +53,15 @@ function getWebpackCKEConfig() {
           {
             test: /\.tsx?$/,
             include: [
-              path.resolve(__dirname, 'ckeditor', 'plugins'),
+              path.resolve(__dirname, 'ckeditor'),
+              path.resolve(__dirname, 'app'),
             ],
             use: [
               {
                 loader: 'ts-loader',
                 options: {
                   logLevel: 'info',
-                  configFile: path.resolve(__dirname, 'tsconfig.json')
+                  configFile: path.resolve(__dirname, 'ckeditor', 'tsconfig.json')
                 }
               }
             ]
@@ -98,7 +99,12 @@ function getWebpackCKEConfig() {
     },
 
     resolve: {
-      modules: ['node_modules']
+      modules: ['node_modules'],
+      extensions: ['.ts', '.tsx', '.js'],
+      alias: _.merge({
+        'core-components': path.resolve(__dirname, 'app', 'components'),
+        'op-ckeditor': path.resolve(__dirname, 'ckeditor'),
+      })
     },
 
     plugins: [

@@ -311,6 +311,17 @@
         "@ckeditor/ckeditor5-ui": "1.0.0-alpha.2"
       }
     },
+    "@ckeditor/ckeditor5-upload": {
+      "version": "1.0.0-alpha.2",
+      "resolved": "https://registry.npmjs.org/@ckeditor/ckeditor5-upload/-/ckeditor5-upload-1.0.0-alpha.2.tgz",
+      "integrity": "sha1-UPBzHMaCmkjbCQN3UTN4I1dQRKM=",
+      "requires": {
+        "@ckeditor/ckeditor5-core": "1.0.0-alpha.2",
+        "@ckeditor/ckeditor5-engine": "1.0.0-alpha.2",
+        "@ckeditor/ckeditor5-ui": "1.0.0-alpha.2",
+        "@ckeditor/ckeditor5-utils": "1.0.0-alpha.2"
+      }
+    },
     "@ckeditor/ckeditor5-utils": {
       "version": "1.0.0-alpha.2",
       "resolved": "https://registry.npmjs.org/@ckeditor/ckeditor5-utils/-/ckeditor5-utils-1.0.0-alpha.2.tgz",

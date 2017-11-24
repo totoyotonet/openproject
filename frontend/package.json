@@ -41,6 +41,7 @@
     "@ckeditor/ckeditor5-list": "1.0.0-alpha.2",
     "@ckeditor/ckeditor5-markdown-gfm": "1.0.0-alpha.2",
     "@ckeditor/ckeditor5-paragraph": "1.0.0-alpha.2",
+    "@ckeditor/ckeditor5-upload": "^1.0.0-alpha.2",
     "@types/angular": "^1.6.5",
     "@types/angular-mocks": "^1.5.9",
     "@types/angular-ui-router": "^1.1.36",
