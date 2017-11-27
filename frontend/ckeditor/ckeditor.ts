@@ -14,13 +14,14 @@ const ImagetoolbarPlugin = (require('@ckeditor/ckeditor5-image/src/imagetoolbar'
 const LinkPlugin = (require('@ckeditor/ckeditor5-link/src/link') as any).default;
 const ListPlugin = (require('@ckeditor/ckeditor5-list/src/list') as any).default;
 const ParagraphPlugin = (require('@ckeditor/ckeditor5-paragraph/src/paragraph') as any).default;
-const GFMDataProcessor = (require('@ckeditor/ckeditor5-markdown-gfm/src/gfmdataprocessor') as any).default;
+// const GFMDataProcessor = (require('@ckeditor/ckeditor5-markdown-gfm/src/gfmdataprocessor') as any).default;
 
 // import OpTableWidget from './plugins/op-table/src/op-table';
 import OPImageUploadPlugin from './plugins/op-image-upload/op-image-upload';
+import OPCommonMarkProcessor from './plugins/op-commonmark/op-commonmark';
 
 function Markdown( editor:any ) {
-  editor.data.processor = new GFMDataProcessor();
+  editor.data.processor = new OPCommonMarkProcessor();
 }
 
 declare global {

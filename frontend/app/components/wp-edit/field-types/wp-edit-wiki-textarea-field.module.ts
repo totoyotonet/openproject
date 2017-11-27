@@ -77,6 +77,11 @@ export class WikiTextareaEditField extends EditField {
     (window as any).BalloonEditor
       .create(element[0])
       .then((editor:any) => {
+        editor.config['openProject'] = {
+          context: this.resource,
+          element: element
+        };
+
         this.ckeditor = editor;
         if (this.rawValue) {
           this.reset();

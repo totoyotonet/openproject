@@ -110,6 +110,7 @@ export class OpCkeditorFormComponent {
 opUiComponentsModule.component('opCkeditorForm', {
   template: `<div class="${ckEditorWrapperClass}"><div class="${ckEditorReplacementClass}"></div>`,
   controller: OpCkeditorFormComponent,
+  controllerAs: '$ctrl',
   bindings: {
     textareaSelector: '@'
   }
