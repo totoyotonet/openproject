@@ -95,6 +95,10 @@ export class CommentFieldDirectiveController {
     this.editing = true;
 
     this.$timeout(() => {
+      if (!this.field) {
+        this.resetField(withText);
+      }
+
       this.field.$onInit(this.$element);
     });
   }
