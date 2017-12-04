@@ -43,6 +43,7 @@ module OpenProject
     # returns the extracted fulltext or nil if no matching handler was found
     # for the file type.
     def text
+      Rails.logger.debug "TextExtractor text: Attachment"
       if handler = find_handler and text = handler.text(@attachment)
         text.gsub! /\s+/m, ' '
         text.strip!
