@@ -135,6 +135,7 @@ module OpenProject
 
     # Handler base class for XML based (MS / Open / Libre) office documents.
     class ZippedXmlHandler < FileHandler
+      require 'zip'
 
       class SaxDocument < Nokogiri::XML::SAX::Document
         attr_reader :text
