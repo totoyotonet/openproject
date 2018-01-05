@@ -78,6 +78,14 @@ GIT
       rails (>= 5.0.0, < 5.1)
 
 GIT
+  remote: https://github.com/opf/typed_dag.git
+  revision: 5f107953a51c36fd594706a7509879f0bd129ff2
+  ref: 5f10795
+  specs:
+    typed_dag (1.0.1)
+      rails (>= 5.0.4)
+
+GIT
   remote: https://github.com/rspec/rspec-activemodel-mocks
   revision: 5cd4c9d552bcc75d60ea4b7dda96e7377197ab8d
   specs:
@@ -574,8 +582,6 @@ GEM
     tilt (2.0.7)
     timecop (0.9.1)
     ttfunk (1.5.0)
-    typed_dag (1.0.1)
-      rails (>= 5.0.4)
     tzinfo (1.2.3)
       thread_safe (~> 0.1)
     tzinfo-data (1.2017.2)
@@ -725,7 +731,7 @@ DEPENDENCIES
   thin (~> 1.7.2)
   timecop (~> 0.9.0)
   transactional_lock!
-  typed_dag (~> 1.0.1)
+  typed_dag!
   tzinfo-data (~> 1.2017.2)
   unicorn
   unicorn-worker-killer

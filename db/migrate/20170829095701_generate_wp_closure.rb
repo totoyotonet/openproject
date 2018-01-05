@@ -42,6 +42,8 @@ class GenerateWpClosure < ActiveRecord::Migration[5.0]
       change_column_null :relations, column, true
     end
 
+    change_column_null :relations, :count, true
+
     remove_column :relations, :relation_type
 
     remove_nested_set_columns
@@ -74,11 +76,14 @@ class GenerateWpClosure < ActiveRecord::Migration[5.0]
       relation_types.each do |column|
         r.column column, :integer, default: 0
       end
+
+      r.column :count, :integer, default: 0
     end
 
     add_index :relations,
-              %i(hierarchy relates duplicates blocks follows includes requires),
-              name: 'relations_on_type_columns'
+              %i(from_id to_id hierarchy relates duplicates blocks follows includes requires),
+              name: 'relations_on_type_columns',
+              unique: true
   end
 
   def exactly_one_column_eql_1(columns, prefix = '')
@@ -234,6 +239,8 @@ class GenerateWpClosure < ActiveRecord::Migration[5.0]
     relation_types.each do |column|
       remove_column :relations, column
     end
+
+    remove_column :relations, :count
   end
 
   def rebuild_nested_set
