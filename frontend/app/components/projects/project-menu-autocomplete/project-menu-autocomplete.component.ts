@@ -26,6 +26,8 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
+import * as fuzzy from 'fuzzy';
+
 import {PathHelperService} from 'core-components/common/path-helper/path-helper.service';
 import {wpControllersModule} from '../../../angular-modules';
 
@@ -59,8 +61,10 @@ export class ProjectMenuAutocompleteController {
   // The result set for the instance, loaded only once
   public results:null|IProjectMenuEntry[] = null;
 
-  private maxItemsPerPage = 20;
-  private currentPage = 1;
+  // Items per page to show before using lazy load
+  // Please note that the max-height of the container is relevant here.
+  private maxItemsPerPage = 50;
+  private currentPage = 0;
   private loaded = false;
 
   constructor(protected PathHelper:PathHelperService,
@@ -126,16 +130,29 @@ export class ProjectMenuAutocompleteController {
       });
   }
 
+  private fuzzySearch(items:IAutocompleteItem[], term:string) {
+    if (term === '') {
+      return items;
+    }
+
+    const options = { extract: (i:IAutocompleteItem) => i.label };
+    const results = fuzzy.filter(term, items, options);
+    return results.map(el => el.original);
+  }
+
   private setupAutoCompletion(autocompleteValues:IAutocompleteItem[]) {
     const ctrl = this;
     ctrl.currentPage = 0;
     this.defineJQueryQueryComplete();
     this.input.projectMenuComplete({
       delay: 0,
-      source: autocompleteValues,
+      source: function (this:any, request:any, response:any) {
+        response(ctrl.fuzzySearch(autocompleteValues, request.term));
+      },
       select: (ul:any, selected:{ item:IAutocompleteItem }) => {
         this.goToProject(selected.item.project);
       },
+      create: () => ctrl.input.focus(),
       response: (event:any, ui:any) => {
         // Show the noResults span if we don't have any matches
         this.noResults.toggle(ui.content.length === 0);
@@ -180,7 +197,7 @@ export class ProjectMenuAutocompleteController {
         this._search('');
       },
 
-      _renderMenu: function (this:any, ul:Element, items:IAutocompleteItem[]) {
+      _renderMenu: function (this:any, ul:HTMLElement, items:IAutocompleteItem[]) {
         let currentlyPublic:boolean;
 
         //remove scroll event to prevent attaching multiple scroll events to one container element
@@ -190,30 +207,38 @@ export class ProjectMenuAutocompleteController {
       },
 
       // Rener the menu for the current page
-      _renderMenuPage(this:any, ul:Element, items:IAutocompleteItem[], page:number|null = null) {
+      _renderMenuPage(this:any, ul:JQuery, items:IAutocompleteItem[], page:number|null = null) {
         let widget = this;
+        let rendered:number = items.length;
         let pageElements = items;
         let max = ctrl.maxItemsPerPage;
         if (page !== null) {
-          console.log("Rendering page " + page);
           pageElements = items.slice(page * max, (page * max) + max);
+          rendered = Math.min(items.length, (page * max) + max);
         }
 
-        //append item to ul
+        // Insert elements of this page
         jQuery.each(pageElements, function (index, item) {
           widget._renderItemData(ul, item);
         });
+
+        // Ensure scrollbar is shown when more results exist
+        ul.css('height', 'auto');
+        if (rendered < items.length) {
+          const maxHeight = document.body.offsetHeight * 0.55;
+          const shownHeight = rendered * 32;
+
+          if (shownHeight < maxHeight) {
+            ul.css('height', shownHeight - 50);
+          }
+        }
       },
 
-      _repositionMenu: function(this: any, container:JQuery) {
+      _repositionMenu: function(this:any, container:JQuery) {
         const widget = this;
         const menu = widget.menu;
 
-        menu.deactivate();
         menu.refresh();
-
-        // size and position menu
-        container.show();
 
         // Call ui's own resize
         widget._resizeMenu();
@@ -224,30 +249,18 @@ export class ProjectMenuAutocompleteController {
         }
       },
 
-      // Resize the menu to keep max-height just below elements when more are available
-      // Borrows from https://github.com/anseki/jquery-ui-autocomplete-scroll by anseki
-      _resizeMenu: function() {
-        var ul, lis, ulW, barW;
-        if (isNaN(this.options.maxShowItems)) { return; }
-        ul = this.menu.element
-          .scrollLeft(0).scrollTop(0) // Reset scroll position
-          .css({overflowX: '', overflowY: '', width: '', maxHeight: ''}); // Restore
-        lis = ul.children('li').css('whiteSpace', 'nowrap');
+      _renderItem: function (this:any, ul:JQuery, item:IAutocompleteItem) {
+        const term = this.element.val();
+        const element = jQuery('<li>')
+          .append( jQuery( "<div>" ).text(item.label) )
+          .appendTo( ul );
 
-        if (lis.length > this.options.maxShowItems) {
-          ulW = ul.prop('clientWidth');
-          ul.css({overflowX: 'hidden', overflowY: 'auto',
-            maxHeight: lis.eq(0).outerHeight() * this.options.maxShowItems + 1}); // 1px for Firefox
-          barW = ulW - ul.prop('clientWidth');
-          ul.width('+=' + barW);
+        if (term !== '') {
+          element.mark(term, { className: 'ui-autocomplete-match' })
         }
 
-        // Original code from jquery.ui.autocomplete.js _resizeMenu()
-        ul.outerWidth(Math.max(
-          ul.outerWidth() + 1,
-          this.element.outerWidth()
-        ));
-      }
+        return element;
+      },
 
       _renderLazyMenu: function (this:any, ul:Element, items:IAutocompleteItem[]) {
         const widget = this;
@@ -269,8 +282,8 @@ export class ProjectMenuAutocompleteController {
             // Render the current menu page
             widget._renderMenuPage(ul, items, ctrl.currentPage);
 
-            // Reposition the menu
-            widget._repositionMenu(container);
+            // Refresh the menu
+            widget._repositionMenu(ul);
           }
         });
       }
@@ -279,7 +292,7 @@ export class ProjectMenuAutocompleteController {
 
   private goToProject(project:IProjectMenuEntry) {
     this.$window.location.href = this.PathHelper.projectPath(project.identifier);
-  };
+  }
 }
 
 wpControllersModule.component('projectMenuAutocomplete', {
