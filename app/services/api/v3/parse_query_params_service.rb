@@ -186,7 +186,8 @@ module API
       end
 
       def params_exist?(params, symbols)
-        params.detect { |k, _| symbols.include? k.to_sym }
+        params_hash = params.to_h
+        params_hash.detect { |k, _| symbols.include? k.to_sym }
       end
 
       def without_empty(hash, exceptions)
