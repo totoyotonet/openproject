@@ -267,6 +267,7 @@ jQuery(document).ready(function($) {
     addClickEventToAllErrorMessages();
   });
 
+  // TODO remove after select2
   $.extend($.fn.select2.defaults, {
     formatNoMatches: function () {
       return I18n.t("js.select2.no_matches");
@@ -288,8 +289,6 @@ jQuery(document).ready(function($) {
       return null;
     }
   });
-
-
 
   // file table thumbnails
   jQuery("table a.has-thumb").hover(function() {
