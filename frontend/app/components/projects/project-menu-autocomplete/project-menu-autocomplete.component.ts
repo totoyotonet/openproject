@@ -251,13 +251,26 @@ export class ProjectMenuAutocompleteController {
 
       _renderItem: function (this:any, ul:JQuery, item:IAutocompleteItem) {
         const term = this.element.val();
+        const div = jQuery('<div>');
+
+        // When in hierarchy, indent
+        if (item.project.level > 0) {
+          div
+            .text(`» ${item.label}`)
+            .css('padding-left', (4 + item.project.level * 16) + 'px');
+        } else {
+          div.text(item.label);
+        }
+
         const element = jQuery('<li>')
-          .append( jQuery( "<div>" ).text(item.label) )
-          .appendTo( ul );
+          .append(div)
+          .appendTo(ul);
 
         if (term !== '') {
           element.mark(term, { className: 'ui-autocomplete-match' })
         }
+
+        // Indent element
 
         return element;
       },
